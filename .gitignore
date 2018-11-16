@@ -1,3 +1,5 @@
 .vscode
 api
 bindata.go
+server.crt
+server.key

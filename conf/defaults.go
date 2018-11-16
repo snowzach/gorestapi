@@ -25,6 +25,9 @@ func init() {
 	// Server Configuration
 	config.SetDefault("server.host", "")
 	config.SetDefault("server.port", "8900")
+	config.SetDefault("server.tls", false)
+	config.SetDefault("server.certfile", "server.crt")
+	config.SetDefault("server.keyfile", "server.key")
 	config.SetDefault("server.log_requests", true)
 	config.SetDefault("server.profiler_enabled", false)
 	config.SetDefault("server.profiler_path", "/debug")

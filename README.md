@@ -37,6 +37,9 @@ LOGGER_LEVEL=debug
 | ---                            | ---                                                         | ---                   |
 | server.host                    | The host address to listen on (blank=all addresses)         | ""                    |
 | server.port                    | The port number to listen on                                | 8900                  |
+| server.tls                     | Enable https/tls                                            | false                 |
+| server.certfile                | The HTTPS/TLS server certificate                            | "server.crt"          |
+| server.keyfile                 | The HTTPS/TLS server key file                               | "server.key"          |
 | server.log_requests            | Log API requests                                            | true                  |
 | server.profiler_enabled        | Enable the profiler                                         | false                 |
 | server.profiler_path           | Where should the profiler be available                      | "/debug"              |
@@ -60,3 +63,6 @@ LOGGER_LEVEL=debug
 ## Data Storage
 Data is stored in a postgres database
 
+## TLS/HTTPS
+You can enable https by setting the config option server.tls = true and pointing it to your keyfile and certfile.
+To create a self-signed cert: `openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509 -keyout server.key -out server.crt`

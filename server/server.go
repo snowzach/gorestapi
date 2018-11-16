@@ -1,6 +1,8 @@
 package server
 
 import (
+	"crypto/tls"
+	"fmt"
 	"net"
 	"net/http"
 	"time"
@@ -18,6 +20,7 @@ import (
 type Server struct {
 	logger     *zap.SugaredLogger
 	router     chi.Router
+	server     *http.Server
 	thingStore gorestapi.ThingStore
 }
 
@@ -67,18 +70,42 @@ func New(thingStore gorestapi.ThingStore) (*Server, error) {
 	}
 
 	s := &Server{
-		logger:     zap.S().With("package", "api"),
-		router:     r,
+		logger: zap.S().With("package", "api"),
+		router: r,
+		server: &http.Server{
+			Addr:    net.JoinHostPort(config.GetString("server.host"), config.GetString("server.port")),
+			Handler: r,
+		},
 		thingStore: thingStore,
 	}
 
-	address := net.JoinHostPort(config.GetString("server.host"), config.GetString("server.port"))
+	// Listen
+	listener, err := net.Listen("tcp", s.server.Addr)
+	if err != nil {
+		return s, fmt.Errorf("Could not listen on %s: %v", s.server.Addr, err)
+	}
+
+	// Enable TLS?
+	if config.GetBool("server.tls") {
+		// Load keys from file
+		cert, err := tls.LoadX509KeyPair(config.GetString("server.certfile"), config.GetString("server.keyfile"))
+		if err != nil {
+			return s, fmt.Errorf("Could not load server certificate: %v", err)
+		}
+		// Enabed Certs - TODO Add/Get a cert
+		s.server.TLSConfig = &tls.Config{
+			Certificates: []tls.Certificate{cert},
+		}
+		// Wrap the listener in a TLS Listener
+		listener = tls.NewListener(listener, s.server.TLSConfig)
+	}
+
 	go func() {
-		if err := http.ListenAndServe(address, s.router); err != nil {
-			s.logger.Fatalw("API Listen error", "error", err, "address", address)
+		if err := s.server.Serve(listener); err != nil {
+			s.logger.Fatalw("API Listen error", "error", err, "address", s.server.Addr)
 		}
 	}()
-	s.logger.Infow("API Listening", "address", address)
+	s.logger.Infow("API Listening", "address", s.server.Addr, "tls", config.GetBool("server.tls"))
 
 	s.SetupRoutes()
 
