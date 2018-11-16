@@ -26,6 +26,7 @@ func init() {
 	config.SetDefault("server.host", "")
 	config.SetDefault("server.port", "8900")
 	config.SetDefault("server.tls", false)
+	config.SetDefault("server.devcert", false)
 	config.SetDefault("server.certfile", "server.crt")
 	config.SetDefault("server.keyfile", "server.key")
 	config.SetDefault("server.log_requests", true)

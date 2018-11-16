@@ -38,6 +38,7 @@ LOGGER_LEVEL=debug
 | server.host                    | The host address to listen on (blank=all addresses)         | ""                    |
 | server.port                    | The port number to listen on                                | 8900                  |
 | server.tls                     | Enable https/tls                                            | false                 |
+| server.devcert                 | Generate a development cert                                 | false                 |
 | server.certfile                | The HTTPS/TLS server certificate                            | "server.crt"          |
 | server.keyfile                 | The HTTPS/TLS server key file                               | "server.key"          |
 | server.log_requests            | Log API requests                                            | true                  |

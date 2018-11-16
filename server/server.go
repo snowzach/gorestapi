@@ -88,11 +88,19 @@ func New(thingStore gorestapi.ThingStore) (*Server, error) {
 
 	// Enable TLS?
 	if config.GetBool("server.tls") {
-		// Load keys from file
-		cert, err := tls.LoadX509KeyPair(config.GetString("server.certfile"), config.GetString("server.keyfile"))
-		if err != nil {
-			return s, fmt.Errorf("Could not load server certificate: %v", err)
+		var cert tls.Certificate
+		if config.GetBool("server.devcert") {
+			s.logger.Warn("WARNING: This server is using an insecure development tls certificate. This is for development only!!!")
+			var refTime time.Time // The unix epoch
+			cert, err = certtools.AutoCert("localhost", "", "", nil, refTime, refTime.Add(100*365*24*time.Hour), certtools.InsecureStringReader("localhost"))
+		} else {
+			// Load keys from file
+			cert, err = tls.LoadX509KeyPair(config.GetString("server.certfile"), config.GetString("server.keyfile"))
+			if err != nil {
+				return s, fmt.Errorf("Could not load server certificate: %v", err)
+			}
 		}
+
 		// Enabed Certs - TODO Add/Get a cert
 		s.server.TLSConfig = &tls.Config{
 			Certificates: []tls.Certificate{cert},
