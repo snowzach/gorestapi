@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
+	"github.com/snowzach/certtools"
 	config "github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -95,6 +96,8 @@ func New(thingStore gorestapi.ThingStore) (*Server, error) {
 		// Enabed Certs - TODO Add/Get a cert
 		s.server.TLSConfig = &tls.Config{
 			Certificates: []tls.Certificate{cert},
+			MinVersion:   certtools.SecureTLSMinVersion(),
+			CipherSuites: certtools.SecureTLSCipherSuites(),
 		}
 		// Wrap the listener in a TLS Listener
 		listener = tls.NewListener(listener, s.server.TLSConfig)
