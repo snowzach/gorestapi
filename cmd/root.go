@@ -81,11 +81,10 @@ func initConfig() {
 		config.SetConfigFile(configFile)
 		err := config.ReadInConfig()
 		if err != nil {
-			zap.S().Fatalw("Could not read config file",
-				"file", configFile,
-				"error", err,
-			)
+			fmt.Fprintf(os.Stderr, "Could not read config file: %s ERROR: %s\n", configFile, err.Error())
+			os.Exit(1)
 		}
+
 	}
 }
 
