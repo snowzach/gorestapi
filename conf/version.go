@@ -1,8 +1,8 @@
 package conf
 
 var (
-	// Executable is overidden by Makefile with executable name
+	// Executable is overridden by Makefile with executable name
 	Executable = "NoExecutable"
-	// GitVersion is overriden by Makefile with git information
+	// GitVersion is overridden by Makefile with git information
 	GitVersion = "NoGitVersion"
 )
