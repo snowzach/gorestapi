@@ -158,6 +158,9 @@ func New() (*Client, error) {
 			return migrations.Asset(name)
 		})
 	d, err := bindata.WithInstance(s)
+	if err != nil {
+		return nil, fmt.Errorf("Could not create migrations reader: %v", err)
+	}
 	m, err := migrate.NewWithSourceInstance("go-bindata", d, "postgres://"+dbURL)
 
 	// // Also perform a database migration

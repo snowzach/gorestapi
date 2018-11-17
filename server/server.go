@@ -18,6 +18,7 @@ import (
 	"github.com/snowzach/gorestapi/gorestapi"
 )
 
+// Server is the API web server
 type Server struct {
 	logger     *zap.SugaredLogger
 	router     chi.Router
@@ -93,6 +94,9 @@ func New(thingStore gorestapi.ThingStore) (*Server, error) {
 			s.logger.Warn("WARNING: This server is using an insecure development tls certificate. This is for development only!!!")
 			var refTime time.Time // The unix epoch
 			cert, err = certtools.AutoCert("localhost", "", "", nil, refTime, refTime.Add(100*365*24*time.Hour), certtools.InsecureStringReader("localhost"))
+			if err != nil {
+				return s, fmt.Errorf("Could not autocert generate server certificate: %v", err)
+			}
 		} else {
 			// Load keys from file
 			cert, err = tls.LoadX509KeyPair(config.GetString("server.certfile"), config.GetString("server.keyfile"))
