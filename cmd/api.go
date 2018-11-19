@@ -15,8 +15,8 @@ func init() {
 
 	rootCmd.AddCommand(&cli.Command{
 		Use:   "api",
-		Short: "Show version",
-		Long:  `Show version`,
+		Short: "Start API",
+		Long:  `Start API`,
 		Run: func(cmd *cli.Command, args []string) { // Initialize the databse
 
 			var thingStore gorestapi.ThingStore
