@@ -87,27 +87,31 @@ func New() (*Client, error) {
 	}
 
 	for retries := config.GetInt("storage.retries"); retries > 0 && !conf.StopFlag; retries-- {
-		// Connect and create the database (without sqlx)
+		// See if we have access to the datbase
+		checkDb, err := sql.Open("postgres", dbCreateCreds+dbConnection+fmt.Sprintf("dbname=%s", dbName))
+		if err == nil {
+			checkDb.Close()
+			break // already exists
+		} else if strings.Contains(err.Error(), "permission denied") {
+			return nil, fmt.Errorf("Could not connect to database: %s", err)
+		} else if strings.Contains(err.Error(), "connection refused") {
+			logger.Warnw("Connection to database timed out. Sleeping and retry.",
+				"storage.host", config.GetString("storage.host"),
+				"storage.username", config.GetString("storage.username"),
+				"storage.password", "****",
+				"storage.port", config.GetInt("storage.port"),
+			)
+			time.Sleep(config.GetDuration("storage.sleep_between_retries"))
+			continue
+		}
+		// The Connect and create the database (without sqlx)
 		createDb, err := sql.Open("postgres", dbCreateCreds+dbConnection)
 		// Attempt to create the database if it doesn't exist
 		if err == nil {
 			_, err = createDb.Exec(`CREATE DATABASE ` + dbName)
 		}
 		if err != nil {
-			if strings.Contains(err.Error(), "connection refused") {
-				logger.Warnw("Connection to database timed out. Sleeping and retry.",
-					"storage.host", config.GetString("storage.host"),
-					"storage.username", config.GetString("storage.username"),
-					"storage.password", "****",
-					"storage.port", config.GetInt("storage.port"),
-				)
-				time.Sleep(config.GetDuration("storage.sleep_between_retries"))
-				continue
-			} else if strings.Contains(err.Error(), "already exists") {
-				// We're done
-			} else {
-				return nil, fmt.Errorf("Could not connect to database: %s", err)
-			}
+			return nil, fmt.Errorf("Could not create database: %s", err)
 		}
 		createDb.Close()
 		break
