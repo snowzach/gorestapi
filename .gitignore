@@ -1,5 +1,6 @@
 .vscode
 api
+mocks
 bindata.go
 server.crt
 server.key
