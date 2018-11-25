@@ -29,10 +29,16 @@ func init() {
 				logger.Fatalw("Database Error", "error", err)
 			}
 
-			// Register the server routes
-			_, err = server.New(thingStore)
+			// Create the server
+			s, err := server.New(thingStore)
 			if err != nil {
-				logger.Fatalw("Could not RegisterRoutes",
+				logger.Fatalw("Could not create server",
+					"error", err,
+				)
+			}
+			err = s.ListenAndServe()
+			if err != nil {
+				logger.Fatalw("Could not start server",
 					"error", err,
 				)
 			}

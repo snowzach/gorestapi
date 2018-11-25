@@ -6,9 +6,8 @@ import (
 	"testing"
 
 	"github.com/gavv/httpexpect"
-	"github.com/go-chi/chi"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.uber.org/zap"
 
 	"github.com/snowzach/gorestapi/gorestapi"
 	"github.com/snowzach/gorestapi/mocks"
@@ -18,14 +17,9 @@ func TestServerThingPost(t *testing.T) {
 
 	// Mock Store
 	ts := new(mocks.ThingStore)
-
-	// Server Setup
-	s := &Server{
-		logger:     zap.S().With("package", "api"),
-		router:     chi.NewRouter(),
-		thingStore: ts,
-	}
-	s.SetupRoutes()
+	// Create Server
+	s, err := New(ts)
+	assert.Nil(t, err)
 
 	// Create Mock Item
 	i := &gorestapi.Thing{

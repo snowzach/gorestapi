@@ -72,19 +72,28 @@ func New(thingStore gorestapi.ThingStore) (*Server, error) {
 	}
 
 	s := &Server{
-		logger: zap.S().With("package", "api"),
-		router: r,
-		server: &http.Server{
-			Addr:    net.JoinHostPort(config.GetString("server.host"), config.GetString("server.port")),
-			Handler: r,
-		},
+		logger:     zap.S().With("package", "api"),
+		router:     r,
 		thingStore: thingStore,
+	}
+	s.SetupRoutes()
+
+	return s, nil
+
+}
+
+// ListenAndServe will listen for requests
+func (s *Server) ListenAndServe() error {
+
+	s.server = &http.Server{
+		Addr:    net.JoinHostPort(config.GetString("server.host"), config.GetString("server.port")),
+		Handler: s.router,
 	}
 
 	// Listen
 	listener, err := net.Listen("tcp", s.server.Addr)
 	if err != nil {
-		return s, fmt.Errorf("Could not listen on %s: %v", s.server.Addr, err)
+		return fmt.Errorf("Could not listen on %s: %v", s.server.Addr, err)
 	}
 
 	// Enable TLS?
@@ -95,13 +104,13 @@ func New(thingStore gorestapi.ThingStore) (*Server, error) {
 			var refTime time.Time // The unix epoch
 			cert, err = certtools.AutoCert("localhost", "", "", nil, refTime, refTime.Add(100*365*24*time.Hour), certtools.InsecureStringReader("localhost"))
 			if err != nil {
-				return s, fmt.Errorf("Could not autocert generate server certificate: %v", err)
+				return fmt.Errorf("Could not autocert generate server certificate: %v", err)
 			}
 		} else {
 			// Load keys from file
 			cert, err = tls.LoadX509KeyPair(config.GetString("server.certfile"), config.GetString("server.keyfile"))
 			if err != nil {
-				return s, fmt.Errorf("Could not load server certificate: %v", err)
+				return fmt.Errorf("Could not load server certificate: %v", err)
 			}
 		}
 
@@ -116,15 +125,13 @@ func New(thingStore gorestapi.ThingStore) (*Server, error) {
 	}
 
 	go func() {
-		if err := s.server.Serve(listener); err != nil {
+		if err = s.server.Serve(listener); err != nil {
 			s.logger.Fatalw("API Listen error", "error", err, "address", s.server.Addr)
 		}
 	}()
 	s.logger.Infow("API Listening", "address", s.server.Addr, "tls", config.GetBool("server.tls"))
 
-	s.SetupRoutes()
-
-	return s, nil
+	return nil
 
 }
 
