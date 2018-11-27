@@ -65,12 +65,6 @@ func New(thingStore gorestapi.ThingStore) (*Server, error) {
 		})
 	}
 
-	// Enable profiler
-	if config.GetBool("server.profiler_enabled") && config.GetString("server.profiler_path") != "" {
-		zap.S().Debugw("Profiler enabled on API", "path", config.GetString("server.profiler_path"))
-		r.Mount(config.GetString("server.profiler_path"), middleware.Profiler())
-	}
-
 	s := &Server{
 		logger:     zap.S().With("package", "api"),
 		router:     r,
@@ -130,6 +124,12 @@ func (s *Server) ListenAndServe() error {
 		}
 	}()
 	s.logger.Infow("API Listening", "address", s.server.Addr, "tls", config.GetBool("server.tls"))
+
+	// Enable profiler
+	if config.GetBool("server.profiler_enabled") && config.GetString("server.profiler_path") != "" {
+		zap.S().Debugw("Profiler enabled on API", "path", config.GetString("server.profiler_path"))
+		s.router.Mount(config.GetString("server.profiler_path"), middleware.Profiler())
+	}
 
 	return nil
 
