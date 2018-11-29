@@ -66,7 +66,7 @@ func New(thingStore gorestapi.ThingStore) (*Server, error) {
 	}
 
 	s := &Server{
-		logger:     zap.S().With("package", "api"),
+		logger:     zap.S().With("package", "server"),
 		router:     r,
 		thingStore: thingStore,
 	}
