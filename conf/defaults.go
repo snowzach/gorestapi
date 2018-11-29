@@ -45,6 +45,5 @@ func init() {
 	config.SetDefault("storage.sleep_between_retries", "7s")
 	config.SetDefault("storage.max_connections", 80)
 	config.SetDefault("storage.wipe_confirm", false)
-	config.SetDefault("storage.migrations_dir", "postgres/migrations")
 
 }
