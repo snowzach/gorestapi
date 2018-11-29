@@ -36,13 +36,12 @@ func New() (*Client, error) {
 
 	var dbCreds string       // Regular credentials
 	var dbCreateCreds string // Optional admin credentials to create database
-	var dbConnection string  // Postgres connection string
 	var dbURL string         // Postgres connect url for db migration tool
+	var dbURLOptions string  // OPtions for connection
 
 	// Username
 	if username := config.GetString("storage.username"); username != "" {
-		dbCreds = fmt.Sprintf("user=%s password=%s ", username, config.GetString("storage.password"))
-		dbURL += username + ":" + config.GetString("storage.password")
+		dbCreds = username + ":" + config.GetString("storage.password")
 	} else {
 		return nil, fmt.Errorf("No username specified")
 	}
@@ -54,7 +53,7 @@ func New() (*Client, error) {
 		if pgUser == "" {
 			pgUser = "postgres"
 		}
-		dbCreateCreds = fmt.Sprintf("user=%s password=%s ", pgUser, pgPassword)
+		dbCreateCreds = fmt.Sprintf("%s:%s", pgUser, pgPassword)
 	} else {
 		dbCreateCreds = dbCreds
 	}
@@ -62,13 +61,11 @@ func New() (*Client, error) {
 	// Host + Port
 	if hostname := config.GetString("storage.host"); hostname != "" {
 		dbURL += "@" + hostname
-		dbConnection += fmt.Sprintf("host=%s ", hostname)
 	} else {
 		return nil, fmt.Errorf("No hostname specified")
 	}
 	if port := config.GetString("storage.port"); port != "" {
 		dbURL += ":" + port
-		dbConnection += fmt.Sprintf("port=%s ", port)
 	}
 
 	// Database Name
@@ -77,21 +74,26 @@ func New() (*Client, error) {
 		return nil, fmt.Errorf("No database specified")
 	}
 
-	// Build the dbURL used for migrations
-	dbURL += "/" + dbName
-
 	// SSL Mode
 	if sslMode := config.GetString("storage.sslmode"); sslMode != "" {
-		dbConnection += fmt.Sprintf("sslmode=%s ", sslMode)
-		dbURL += fmt.Sprintf("?sslmode=%s", sslMode)
+		// dbConnection += fmt.Sprintf("sslmode=%s ", sslMode)
+		dbURLOptions += fmt.Sprintf("?sslmode=%s", sslMode)
 	}
 
 	for retries := config.GetInt("storage.retries"); retries > 0 && !conf.StopFlag; retries-- {
-		// See if we have access to the datbase
-		checkDb, err := sql.Open("postgres", dbCreateCreds+dbConnection+fmt.Sprintf("dbname=%s", dbName))
+		createDb, err := sql.Open("postgres", "postgres://"+dbCreateCreds+dbURL+dbURLOptions)
+		// Attempt to create the database if it doesn't exist
 		if err == nil {
-			checkDb.Close()
-			break // already exists
+			defer createDb.Close()
+			// See if it exists
+			var one sql.NullInt64
+			err = createDb.QueryRow(`SELECT 1 from pg_database WHERE datname=$1`, dbName).Scan(&one)
+			if err == nil {
+				break // already exists
+			} else if err != sql.ErrNoRows && !strings.Contains(err.Error(), "does not exist") {
+				// Some other error besides does not exist
+				return nil, fmt.Errorf("Could not check for database: %s", err)
+			}
 		} else if strings.Contains(err.Error(), "permission denied") {
 			return nil, fmt.Errorf("Could not connect to database: %s", err)
 		} else if strings.Contains(err.Error(), "connection refused") {
@@ -104,18 +106,16 @@ func New() (*Client, error) {
 			time.Sleep(config.GetDuration("storage.sleep_between_retries"))
 			continue
 		}
-		// The Connect and create the database (without sqlx)
-		createDb, err := sql.Open("postgres", dbCreateCreds+dbConnection)
-		// Attempt to create the database if it doesn't exist
-		if err == nil {
-			_, err = createDb.Exec(`CREATE DATABASE ` + dbName)
-		}
+		logger.Infow("Creating database", "database", dbName)
+		_, err = createDb.Exec(`CREATE DATABASE ` + dbName)
 		if err != nil {
 			return nil, fmt.Errorf("Could not create database: %s", err)
 		}
-		createDb.Close()
 		break
 	}
+
+	// Build the full DB URL
+	fullDbURL := "postgres://" + dbCreds + dbURL + "/" + dbName + dbURLOptions
 
 	// If we caught the stop flag while sleeping
 	if conf.StopFlag {
@@ -128,7 +128,7 @@ func New() (*Client, error) {
 	}
 
 	// Make the connection using the sqlx connector now that we know the database exists
-	db, err := sqlx.Connect("postgres", dbCreds+dbConnection+fmt.Sprintf("dbname=%s", dbName))
+	db, err := sqlx.Connect("postgres", fullDbURL)
 	if err != nil {
 		return nil, fmt.Errorf("Could not connect to database: %s", err)
 	}
@@ -165,10 +165,7 @@ func New() (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Could not create migrations reader: %v", err)
 	}
-	m, err := migrate.NewWithSourceInstance("go-bindata", d, "postgres://"+dbURL)
-
-	// // Also perform a database migration
-	// m, err := migrate.New("file://"+config.GetString("storage.migrations_dir"), "postgres://"+dbURL)
+	m, err := migrate.NewWithSourceInstance("go-bindata", d, fullDbURL)
 	if err != nil {
 		logger.Errorw("Database migration error",
 			"error", err,
