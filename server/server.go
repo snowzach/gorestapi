@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
 	"github.com/snowzach/certtools"
 	config "github.com/spf13/viper"
@@ -64,6 +65,15 @@ func New(thingStore gorestapi.ThingStore) (*Server, error) {
 			})
 		})
 	}
+
+	// CORS Config
+	r.Use(cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{http.MethodHead, http.MethodOptions, http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}).Handler)
 
 	s := &Server{
 		logger:     zap.S().With("package", "server"),
