@@ -30,7 +30,7 @@ type Client struct {
 // New returns a new database client
 func New() (*Client, error) {
 
-	logger := zap.S().With("package", "storage.psql")
+	logger := zap.S().With("package", "storage.postgres")
 
 	var err error
 
