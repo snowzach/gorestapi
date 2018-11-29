@@ -33,7 +33,6 @@ func New(thingStore gorestapi.ThingStore) (*Server, error) {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Recoverer)
-	r.Use(middleware.URLFormat)
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 
 	// Log Requests
