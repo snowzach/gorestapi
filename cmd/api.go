@@ -12,8 +12,11 @@ import (
 )
 
 func init() {
+	rootCmd.AddCommand(apiCmd)
+}
 
-	rootCmd.AddCommand(&cli.Command{
+var (
+	apiCmd = &cli.Command{
 		Use:   "api",
 		Short: "Start API",
 		Long:  `Start API`,
@@ -48,5 +51,5 @@ func init() {
 			zap.L().Sync()            // Flush the logger
 
 		},
-	})
-}
+	}
+)
