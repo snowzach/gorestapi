@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
 	"github.com/snowzach/certtools"
+	"github.com/snowzach/certtools/autocert"
 	config "github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -104,8 +105,7 @@ func (s *Server) ListenAndServe() error {
 		var cert tls.Certificate
 		if config.GetBool("server.devcert") {
 			s.logger.Warn("WARNING: This server is using an insecure development tls certificate. This is for development only!!!")
-			refTime := time.Date(2010, 1, 1, 0, 0, 0, 0, time.UTC)
-			cert, err = certtools.AutoCert("localhost", "", "", nil, refTime, refTime.Add(100*365*24*time.Hour), certtools.InsecureStringReader("localhost"))
+			cert, err = autocert.New(autocert.InsecureStringReader("localhost"))
 			if err != nil {
 				return fmt.Errorf("Could not autocert generate server certificate: %v", err)
 			}
