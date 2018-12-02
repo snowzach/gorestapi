@@ -45,9 +45,6 @@ LOGGER_LEVEL=debug
 | server.profiler_enabled        | Enable the profiler                                         | false        |
 | server.profiler_path           | Where should the profiler be available                      | "/debug"     |
 | ---                            | ---                                                         | ---          |
-| fetcher.sleep_between_blocks   | How long to sleep between API failures                      | "100ms"      |
-| fetcher.sleep_between_checks   | How long to sleep between API checks                        | "30s"        |
-| ---                            | ---                                                         | ---          |
 | storage.type                   | The database type (supports postgres)                       | "postgres"   |
 | storage.username               | The database username                                       | "postgres"   |
 | storage.password               | The database password                                       | "password"   |
@@ -59,6 +56,12 @@ LOGGER_LEVEL=debug
 | storage.sleep_between_retriews | How long to sleep between retries                           | "7s"         |
 | storage.max_connections        | How many pooled connections to have                         | 80           |
 | storage.wipe_confirm           | Wipe the database during start                              | false        |
+| ---                            | ---                                                         | ---          |
+| pidfile                        | Write a pidfile (only if specified)                         | ""           |
+| profiler.enabled               | Enable the debug pprof interface                            | "false"      |
+| profiler.host                  | The profiler host address to listen on                      | ""           |
+| profiler.port                  | The profiler port to listen on                              | "6060"       |
+
 
 ## Data Storage
 Data is stored in a postgres database
