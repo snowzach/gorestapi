@@ -46,9 +46,9 @@ var (
 				)
 			}
 
-			<-conf.StopChan           // Wait until StopChan
-			conf.StopWaitGroup.Wait() // Wait until everyone cleans up
-			zap.L().Sync()            // Flush the logger
+			<-conf.Stop.Chan() // Wait until StopChan
+			conf.Stop.Wait()   // Wait until everyone cleans up
+			zap.L().Sync()     // Flush the logger
 
 		},
 	}

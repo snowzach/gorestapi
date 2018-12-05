@@ -80,7 +80,7 @@ func New() (*Client, error) {
 		dbURLOptions += fmt.Sprintf("?sslmode=%s", sslMode)
 	}
 
-	for retries := config.GetInt("storage.retries"); retries > 0 && !conf.StopFlag; retries-- {
+	for retries := config.GetInt("storage.retries"); retries > 0 && !conf.Stop.Bool(); retries-- {
 		createDb, err := sql.Open("postgres", "postgres://"+dbCreateCreds+dbURL+dbURLOptions)
 		// Attempt to create the database if it doesn't exist
 		if err == nil {
@@ -118,7 +118,7 @@ func New() (*Client, error) {
 	fullDbURL := "postgres://" + dbCreds + dbURL + "/" + dbName + dbURLOptions
 
 	// If we caught the stop flag while sleeping
-	if conf.StopFlag {
+	if conf.Stop.Bool() {
 		return nil, fmt.Errorf("Database connection aborted")
 	}
 
