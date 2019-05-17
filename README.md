@@ -64,8 +64,12 @@ LOGGER_LEVEL=debug
 
 
 ## Data Storage
-Data is stored in a postgres database
+Data is stored in a postgres database by default.
 
 ## TLS/HTTPS
 You can enable https by setting the config option server.tls = true and pointing it to your keyfile and certfile.
 To create a self-signed cert: `openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509 -keyout server.key -out server.crt`
+
+## Relocation
+If you want to start with this as boilerplate for your project, you can clone this repo and use the `make relocate` option to rename the package.
+`make relocate TARGET=github.com/myname/mycoolproject`
