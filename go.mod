@@ -13,7 +13,10 @@ require (
 	github.com/go-chi/render v1.0.1
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/golang-migrate/migrate/v4 v4.1.0
+	github.com/google/pprof v0.0.0-20190502144155-8358a9778bd1 // indirect
+	github.com/google/wire v0.2.1
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
+	github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6 // indirect
 	github.com/imkira/go-interpol v1.1.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jmoiron/sqlx v1.2.0
@@ -50,9 +53,9 @@ require (
 	go.uber.org/atomic v1.3.2 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.9.1
-	golang.org/x/net v0.0.0-20181201002055-351d144fa1fc // indirect
-	golang.org/x/sync v0.0.0-20181108010431-42b317875d0f // indirect
-	golang.org/x/sys v0.0.0-20181128092732-4ed8d59d0b35 // indirect
+	golang.org/x/arch v0.0.0-20190312162104-788fe5ffcd8c // indirect
+	golang.org/x/crypto v0.0.0-20190506204251-e1dfcc566284 // indirect
+	golang.org/x/tools v0.0.0-20190509153222-73554e0f7805 // indirect
 	google.golang.org/appengine v1.3.0 // indirect
 	gopkg.in/yaml.v2 v2.2.2 // indirect
 )
