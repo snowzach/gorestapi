@@ -5,6 +5,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/snowzach/gorestapi/conf"
+	"github.com/snowzach/gorestapi/gorestapi/thingserver"
 )
 
 func init() {
@@ -25,6 +26,11 @@ var (
 					"error", err,
 				)
 			}
+
+			// Setup and register the thingserver
+			ts := NewThingStore()
+			thingserver.Setup(s.Router(), ts)
+
 			err = s.ListenAndServe()
 			if err != nil {
 				logger.Fatalw("Could not start server",

@@ -30,6 +30,8 @@ func init() {
 	config.SetDefault("server.certfile", "server.crt")
 	config.SetDefault("server.keyfile", "server.key")
 	config.SetDefault("server.log_requests", true)
+	config.SetDefault("server.log_requests_body", false)
+	config.SetDefault("server.log_disabled_http", []string{"/version"})
 	config.SetDefault("server.profiler_enabled", false)
 	config.SetDefault("server.profiler_path", "/debug")
 

@@ -16,25 +16,31 @@ import (
 	config "github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
-	"github.com/snowzach/gorestapi/gorestapi"
 )
 
-// Server is the API web server
 type Server struct {
-	logger     *zap.SugaredLogger
-	router     chi.Router
-	server     *http.Server
-	thingStore gorestapi.ThingStore
+	logger *zap.SugaredLogger
+	router chi.Router
+	server *http.Server
 }
 
 // New will setup the API listener
-func New(thingStore gorestapi.ThingStore) (*Server, error) {
+func New() (*Server, error) {
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Recoverer)
 	r.Use(render.SetContentType(render.ContentTypeJSON))
+
+	// Log Requests - Use appropriate format depending on the encoding
+	if config.GetBool("server.log_requests") {
+		switch config.GetString("logger.encoding") {
+		case "stackdriver":
+			r.Use(loggerHTTPMiddlewareStackdriver(config.GetBool("server.log_requests_body"), config.GetStringSlice("server.log_disabled_http")))
+		default:
+			r.Use(loggerHTTPMiddlewareDefault(config.GetBool("server.log_requests_body"), config.GetStringSlice("server.log_disabled_http")))
+		}
+	}
 
 	// Log Requests
 	if config.GetBool("server.log_requests") {
@@ -76,11 +82,12 @@ func New(thingStore gorestapi.ThingStore) (*Server, error) {
 	}).Handler)
 
 	s := &Server{
-		logger:     zap.S().With("package", "server"),
-		router:     r,
-		thingStore: thingStore,
+		logger: zap.S().With("package", "server"),
+		router: r,
 	}
-	s.SetupRoutes()
+
+	// Register our routes
+	s.router.Get("/version", s.GetVersion())
 
 	return s, nil
 
@@ -142,6 +149,11 @@ func (s *Server) ListenAndServe() error {
 
 	return nil
 
+}
+
+// Router returns the router
+func (s *Server) Router() chi.Router {
+	return s.router
 }
 
 // RenderOrErrInternal will render whatever you pass it (assuming it has Renderer) or prints an internal error

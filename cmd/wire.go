@@ -2,14 +2,11 @@
 
 // +build wireinject
 
-
 package cmd
-
 
 import (
 	"github.com/google/wire"
 	config "github.com/spf13/viper"
-
 
 	"github.com/snowzach/gorestapi/gorestapi"
 	"github.com/snowzach/gorestapi/server"
@@ -18,8 +15,8 @@ import (
 
 // Create a new server
 func NewServer() (*server.Server, error) {
-    wire.Build(server.New, NewThingStore)
-    return &server.Server{}, nil
+	wire.Build(server.New)
+	return &server.Server{}, nil
 }
 
 // Create a new thing store

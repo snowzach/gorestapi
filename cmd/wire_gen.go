@@ -19,8 +19,7 @@ import (
 // Injectors from wire.go:
 
 func NewServer() (*server.Server, error) {
-	thingStore := NewThingStore()
-	serverServer, err := server.New(thingStore)
+	serverServer, err := server.New()
 	if err != nil {
 		return nil, err
 	}
