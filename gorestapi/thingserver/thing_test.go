@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/gavv/httpexpect"
+	"github.com/go-chi/chi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -15,9 +16,14 @@ import (
 
 func TestServerThingPost(t *testing.T) {
 
+	// Create test server
+	r := chi.NewRouter()
+	server := httptest.NewServer(r)
+	defer server.Close()
+
 	// Mock Store and server
 	ts := new(mocks.ThingStore)
-	s, err := New(ts)
+	err := Setup(r, ts)
 	assert.Nil(t, err)
 
 	// Create Item
@@ -32,10 +38,6 @@ func TestServerThingPost(t *testing.T) {
 	// Mock call to item store
 	ts.On("ThingSave", mock.AnythingOfType("*context.valueCtx"), i).Once().Return(i.ID, nil)
 
-	// Create test server
-	server := httptest.NewServer(s.router)
-	defer server.Close()
-
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
 	e.POST("/things").WithJSON(i).Expect().Status(http.StatusOK).JSON().Object().Equal(&idResponse)
@@ -47,9 +49,14 @@ func TestServerThingPost(t *testing.T) {
 
 func TestServerThingGetAll(t *testing.T) {
 
+	// Create test server
+	r := chi.NewRouter()
+	server := httptest.NewServer(r)
+	defer server.Close()
+
 	// Mock Store and server
 	ts := new(mocks.ThingStore)
-	s, err := New(ts)
+	err := Setup(r, ts)
 	assert.Nil(t, err)
 
 	// Create Item
@@ -67,10 +74,6 @@ func TestServerThingGetAll(t *testing.T) {
 	// Mock call to item store
 	ts.On("ThingFind", mock.AnythingOfType("*context.valueCtx")).Once().Return(i, nil)
 
-	// Create test server
-	server := httptest.NewServer(s.router)
-	defer server.Close()
-
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
 	e.GET("/things").Expect().Status(http.StatusOK).JSON().Array().Equal(&i)
@@ -82,9 +85,14 @@ func TestServerThingGetAll(t *testing.T) {
 
 func TestServerThingGet(t *testing.T) {
 
+	// Create test server
+	r := chi.NewRouter()
+	server := httptest.NewServer(r)
+	defer server.Close()
+
 	// Mock Store and server
 	ts := new(mocks.ThingStore)
-	s, err := New(ts)
+	err := Setup(r, ts)
 	assert.Nil(t, err)
 
 	// Create Item
@@ -95,10 +103,6 @@ func TestServerThingGet(t *testing.T) {
 
 	// Mock call to item store
 	ts.On("ThingGetByID", mock.AnythingOfType("*context.valueCtx"), "1234").Once().Return(i, nil)
-
-	// Create test server
-	server := httptest.NewServer(s.router)
-	defer server.Close()
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
@@ -111,17 +115,18 @@ func TestServerThingGet(t *testing.T) {
 
 func TestServerThingDelete(t *testing.T) {
 
+	// Create test server
+	r := chi.NewRouter()
+	server := httptest.NewServer(r)
+	defer server.Close()
+
 	// Mock Store and server
 	ts := new(mocks.ThingStore)
-	s, err := New(ts)
+	err := Setup(r, ts)
 	assert.Nil(t, err)
 
 	// Mock call to item store
 	ts.On("ThingDeleteByID", mock.AnythingOfType("*context.valueCtx"), "1234").Once().Return(nil)
-
-	// Create test server
-	server := httptest.NewServer(s.router)
-	defer server.Close()
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)

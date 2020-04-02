@@ -87,7 +87,7 @@ func New() (*Server, error) {
 	}
 
 	// Register our routes
-	s.router.Get("/version", s.GetVersion())
+	s.router.Get("/version", GetVersion())
 
 	return s, nil
 

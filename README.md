@@ -10,7 +10,7 @@ You can clone it anywhere, just run `make` inside the cloned directory to build
 This does require a postgres database to be setup and reachable. It will attempt to create and migrate the database upon starting.
 
 ## Configuration
-The configuration can be specified in a number of ways. By default you can create a json file and call it with the -c option
+The configuration can be specified in a number of ways. By default you can create a json or yaml file and call it with the -c option
 you can also specify environment variables that align with the config file values.
 
 Example:
@@ -30,7 +30,7 @@ LOGGER_LEVEL=debug
 | Setting                        | Description                                                 | Default      |
 |--------------------------------|-------------------------------------------------------------|--------------|
 | logger.level                   | The default logging level                                   | "info"       |
-| logger.encoding                | Logging format (console or json)                            | "console"    |
+| logger.encoding                | Logging format (console, json or stackdriver)               | "console"    |
 | logger.color                   | Enable color in console mode                                | true         |
 | logger.disable_caller          | Hide the caller source file and line number                 | false        |
 | logger.disable_stacktrace      | Hide a stacktrace on debug logs                             | true         |
@@ -69,6 +69,7 @@ Data is stored in a postgres database by default.
 ## TLS/HTTPS
 You can enable https by setting the config option server.tls = true and pointing it to your keyfile and certfile.
 To create a self-signed cert: `openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509 -keyout server.key -out server.crt`
+It also has the option to automatically generate a development cert every time it runs using the server.devcert option.
 
 ## Relocation
 If you want to start with this as boilerplate for your project, you can clone this repo and use the `make relocate` option to rename the package.

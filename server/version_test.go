@@ -6,28 +6,22 @@ import (
 	"testing"
 
 	"github.com/gavv/httpexpect"
-	"github.com/stretchr/testify/assert"
+	"github.com/go-chi/chi"
 
 	"github.com/snowzach/gorestapi/conf"
-	"github.com/snowzach/gorestapi/mocks"
 )
 
 func TestVersionGet(t *testing.T) {
 
-	// Mock Store and server
-	ts := new(mocks.ThingStore)
-	s, err := New(ts)
-	assert.Nil(t, err)
-
 	// Create test server
-	server := httptest.NewServer(s.router)
+	r := chi.NewRouter()
+	server := httptest.NewServer(r)
 	defer server.Close()
+
+	r.Get("/version", GetVersion())
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
 	e.GET("/version").Expect().Status(http.StatusOK).JSON().Object().Value("version").Equal(conf.GitVersion)
-
-	// Check remaining expectations
-	ts.AssertExpectations(t)
 
 }

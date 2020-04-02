@@ -9,7 +9,7 @@ import (
 )
 
 // GetVersion returns version
-func (s *Server) GetVersion() http.HandlerFunc {
+func GetVersion() http.HandlerFunc {
 
 	// Simple version struct
 	type version struct {
