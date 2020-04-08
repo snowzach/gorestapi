@@ -74,11 +74,11 @@ func New() (*Server, error) {
 
 	// CORS Config
 	r.Use(cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{http.MethodHead, http.MethodOptions, http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch},
-		AllowedHeaders:   []string{"*"},
-		AllowCredentials: true,
-		MaxAge:           300,
+		AllowedOrigins:   config.GetStringSlice("server.cors.allowed_origins"),
+		AllowedMethods:   config.GetStringSlice("server.cors.allowed_methods"),
+		AllowedHeaders:   config.GetStringSlice("server.cors.allowed_headers"),
+		AllowCredentials: config.GetBool("server.cors.allowed_credentials"),
+		MaxAge:           config.GetInt("server.cors.max_age"),
 	}).Handler)
 
 	s := &Server{

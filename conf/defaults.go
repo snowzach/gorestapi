@@ -1,6 +1,8 @@
 package conf
 
 import (
+	"net/http"
+
 	config "github.com/spf13/viper"
 )
 
@@ -34,6 +36,11 @@ func init() {
 	config.SetDefault("server.log_disabled_http", []string{"/version"})
 	config.SetDefault("server.profiler_enabled", false)
 	config.SetDefault("server.profiler_path", "/debug")
+	config.SetDefault("server.cors.allowed_origins", []string{"*"})
+	config.SetDefault("server.cors.allowed_methods", []string{http.MethodHead, http.MethodOptions, http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch})
+	config.SetDefault("server.cors.allowed_headers", []string{"*"})
+	config.SetDefault("server.cors.allowed_credentials", false)
+	config.SetDefault("server.cors.max_age", 300)
 
 	// Database Settings
 	config.SetDefault("storage.type", "postgres")
