@@ -1,6 +1,7 @@
 .vscode
-api
+gorestapicmd
 mocks
 bindata.go
 server.crt
 server.key
+local.sh

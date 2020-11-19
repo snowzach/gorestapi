@@ -1,0 +1,189 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "This is the Blue Command API\n\nPlease use the login endpoint to obtain a JWT token and use it in subsequent calls via the Authorization: Beaerer JWT header\nscanner RPC endpoints only require Authentication: Bearer password",
+    "title": "BlueCommand API",
+    "version": "0.0.1"
+  },
+  "paths": {
+    "/api/things": {
+      "get": {
+        "description": "Gets a list of things",
+        "tags": [
+          "THINGS"
+        ],
+        "summary": "Find Things",
+        "operationId": "ThingsFind",
+        "parameters": [
+          {
+            "type": "int",
+            "description": "Number of records to return",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "int",
+            "description": "Offset of records to return",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filter id",
+            "name": "id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filter name",
+            "name": "name",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thing Objects",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/gorestapi_Thing"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Creates or saves a thing. Omit the ID to auto generate.\nPass an existing ID to update.",
+        "tags": [
+          "THINGS"
+        ],
+        "summary": "Create/Save Thing",
+        "operationId": "ThingSave",
+        "parameters": [
+          {
+            "type": "object",
+            "description": "Thing to Save/Update",
+            "name": "thing",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gorestapi_ThingExample"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User Object",
+            "schema": {
+              "$ref": "#/definitions/gorestapi_Thing"
+            }
+          }
+        }
+      }
+    },
+    "/api/things/{id}": {
+      "get": {
+        "description": "Fetches a Thing",
+        "tags": [
+          "THINGS"
+        ],
+        "summary": "Get a Thing",
+        "operationId": "ThingGetByID",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Thing ID to fetch",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thing Object",
+            "schema": {
+              "$ref": "#/definitions/gorestapi_Thing"
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Deletes a Thing",
+        "tags": [
+          "THINGS"
+        ],
+        "summary": "Delete a Thing",
+        "operationId": "ThingDeleteByID",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Thing ID to delete",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "gorestapi_Thing": {
+      "description": "Thing",
+      "type": "object",
+      "properties": {
+        "created": {
+          "description": "Created Timestamp",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "Created"
+        },
+        "id": {
+          "description": "ID (Auto-Generated)",
+          "type": "string",
+          "x-go-name": "ID"
+        },
+        "name": {
+          "description": "Name",
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "updated": {
+          "description": "Updated Timestamp",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "Updated"
+        }
+      },
+      "x-go-name": "Thing",
+      "x-go-package": "github.com/snowzach/gorestapi/gorestapi"
+    },
+    "gorestapi_ThingExample": {
+      "description": "ThingExample",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Name",
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-name": "ThingExample",
+      "x-go-package": "github.com/snowzach/gorestapi/gorestapi"
+    }
+  }
+}

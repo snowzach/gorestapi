@@ -17,12 +17,17 @@ type ErrResponse struct {
 }
 
 // ErrNotFound is a pre-built not-found error
-var ErrNotFound = &ErrResponse{HTTPStatusCode: 404, StatusText: "Resource not found."}
+var ErrNotFound = &ErrResponse{HTTPStatusCode: http.StatusNotFound, StatusText: "Resource not found."}
+var ErrUnauthorized = &ErrResponse{HTTPStatusCode: http.StatusUnauthorized, StatusText: "Not Authorized."}
 
 // Render is the Renderer for ErrResponse struct
 func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	render.Status(r, e.HTTPStatusCode)
 	return nil
+}
+
+func ErrResourceNotFound(resource string) render.Renderer {
+	return &ErrResponse{HTTPStatusCode: http.StatusNotFound, StatusText: resource + " not found."}
 }
 
 // ErrInvalidRequest is used to indicate an error on user input (with wrapped error)
@@ -39,18 +44,15 @@ func ErrInvalidRequest(err error) render.Renderer {
 	}
 }
 
-// ErrInternalLog will log an error and return a generic server error to the user
-func (s *Server) ErrInternalLog(err error) render.Renderer {
-	s.logger.Errorw("Server Error", "error", err)
-	return ErrInternal(err)
-}
-
 // ErrInternal returns a generic server error to the user
 func ErrInternal(err error) render.Renderer {
+	var errorText string
+	if err != nil {
+		errorText = err.Error()
+	}
 	return &ErrResponse{
-		Err:            err,
 		HTTPStatusCode: http.StatusInternalServerError,
 		StatusText:     "Server Error.",
-		ErrorText:      "Server Error.",
+		ErrorText:      errorText,
 	}
 }

@@ -3,50 +3,47 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"strconv"
+	"strings"
 
 	"github.com/snowzach/gorestapi/gorestapi"
 	"github.com/snowzach/gorestapi/store"
 )
 
-// ThingGetByID returns the the thing by ID
-func (c *Client) ThingGetByID(ctx context.Context, id string) (*gorestapi.Thing, error) {
+var (
+	ThingSelect = "SELECT " + strings.Join([]string{
+		"thing.*",
+	}, ",")
+)
 
-	b := new(gorestapi.Thing)
-	err := c.db.GetContext(ctx, b, `SELECT * FROM thing WHERE id = $1`, id)
-	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
-	} else if err != nil {
-		return nil, err
-	}
-	return b, nil
+const (
+	ThingFrom = ` FROM thing`
 
-}
+	ThingFields = `COALESCE(thing.id, '') as "thing.id",
+	COALESCE(thing.created, '0001-01-01 00:00:00 UTC') as "thing.created",
+	COALESCE(thing.updated, '0001-01-01 00:00:00 UTC') as "thing.updated",
+	COALESCE(thing.name, '') as "thing.name"
+	`
+)
 
 // ThingSave saves the thing
-func (c *Client) ThingSave(ctx context.Context, i *gorestapi.Thing) (string, error) {
+func (c *Client) ThingSave(ctx context.Context, thing *gorestapi.Thing) error {
 
 	// Generate an ID if needed
-	if i.ID == "" {
-		i.ID = c.newID()
+	if thing.ID == "" {
+		thing.ID = c.newID()
 	}
 
-	_, err := c.db.ExecContext(ctx, `
-		INSERT INTO thing (id, name)
-		VALUES($1, $2)
+	err := c.db.GetContext(ctx, thing, `
+	WITH thing AS (
+		INSERT INTO thing (id, created, updated, name)
+		VALUES($1, NOW(), NOW(), $2)
 		ON CONFLICT (id) DO UPDATE
-		SET name = $2
-	`, i.ID, i.Name)
-	if err != nil {
-		return i.ID, err
-	}
-	return i.ID, nil
-
-}
-
-// ThingDeleteByID an thing
-func (c *Client) ThingDeleteByID(ctx context.Context, id string) error {
-
-	_, err := c.db.ExecContext(ctx, `DELETE FROM thing WHERE id = $1`, id)
+		SET 
+		updated = NOW(),
+		name = $2
+		RETURNING *
+	) `+ThingSelect+ThingFrom, thing.ID, thing.Name)
 	if err != nil {
 		return err
 	}
@@ -54,16 +51,78 @@ func (c *Client) ThingDeleteByID(ctx context.Context, id string) error {
 
 }
 
-// ThingFind gets things
-func (c *Client) ThingFind(ctx context.Context) ([]*gorestapi.Thing, error) {
+// ThingGetByID returns the the thing by id
+func (c *Client) ThingGetByID(ctx context.Context, id string) (*gorestapi.Thing, error) {
 
-	var bs = make([]*gorestapi.Thing, 0)
-	err := c.db.SelectContext(ctx, &bs, `SELECT * FROM thing`)
+	thing := new(gorestapi.Thing)
+	err := c.db.GetContext(ctx, thing, ThingSelect+ThingFrom+` WHERE thing.id = $1`, id)
 	if err == sql.ErrNoRows {
-		// No Error
+		return nil, store.ErrNotFound
 	} else if err != nil {
-		return bs, err
+		return nil, err
 	}
-	return bs, nil
+	return thing, nil
 
+}
+
+// ThingDeleteByID an thing
+func (c *Client) ThingDeleteByID(ctx context.Context, id string) error {
+
+	_, err := c.db.ExecContext(ctx, `DELETE FROM thing WHERE thing.id = $1`, id)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
+// ThingsFind fetches a things with filter and pagination
+func (c *Client) ThingsFind(ctx context.Context, fqp *store.FindQueryParameters) ([]*gorestapi.Thing, int64, error) {
+
+	var queryClause strings.Builder
+	var queryParams = []interface{}{}
+
+	filterFields := store.FilterFieldTypes{
+		"thing.id":   store.FilterTypeEquals,
+		"thing.name": store.FilterTypeILike,
+	}
+
+	sortFields := store.SortFields{
+		"thing.id",
+		"thing.created",
+		"thing.updated",
+		"thing.name",
+	}
+	// Default sort
+	if len(fqp.Sort) == 0 {
+		fqp.Sort = store.SortValues{&store.Sort{Field: "thing.id", Desc: false}}
+	}
+
+	if err := c.FilterQuery(filterFields, fqp.PreFilter, fqp.PreFilterInclusive, &queryClause, &queryParams); err != nil {
+		return nil, 0, err
+	}
+	if err := c.FilterQuery(filterFields, fqp.Filter, fqp.FilterInclusive, &queryClause, &queryParams); err != nil {
+		return nil, 0, err
+	}
+	var count int64
+	if err := c.db.GetContext(ctx, &count, `SELECT COUNT(*) AS count`+ThingFrom+` WHERE 1=1`+queryClause.String(), queryParams...); err != nil {
+		return nil, 0, err
+	}
+	if err := c.SortQuery(sortFields, fqp.Sort, &queryClause, &queryParams); err != nil {
+		return nil, 0, err
+	}
+	if fqp.Limit > 0 {
+		queryClause.WriteString(" LIMIT " + strconv.Itoa(fqp.Limit))
+	}
+	if fqp.Offset > 0 {
+		queryClause.WriteString(" OFFSET " + strconv.Itoa(fqp.Offset))
+	}
+
+	var things = make([]*gorestapi.Thing, 0)
+	err := c.db.SelectContext(ctx, &things, ThingSelect+ThingFrom+` WHERE 1=1`+queryClause.String(), queryParams...)
+	if err != nil {
+		return things, 0, err
+	}
+
+	return things, count, nil
 }

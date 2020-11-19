@@ -6,17 +6,18 @@ import (
 	"strings"
 	"time"
 
+	// Import Database Migrate Postgres suppose
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres" // Import Database Migrate Postgres suppose
-	"github.com/golang-migrate/migrate/v4/source/go_bindata"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	bindata "github.com/golang-migrate/migrate/v4/source/go_bindata"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq" // Import Postgres Support
 	"github.com/rs/xid"
-	config "github.com/spf13/viper"
 	"go.uber.org/zap"
 
 	"github.com/snowzach/gorestapi/conf"
-	"github.com/snowzach/gorestapi/store/postgres/migrations"
+	"github.com/snowzach/gorestapi/embed"
 )
 
 // Client is the database client
@@ -30,7 +31,7 @@ type Client struct {
 // New returns a new database client
 func New() (*Client, error) {
 
-	logger := zap.S().With("package", "storage.postgres")
+	logger := zap.S().With("package", "store.postgres")
 
 	var err error
 
@@ -40,16 +41,16 @@ func New() (*Client, error) {
 	var dbURLOptions string  // OPtions for connection
 
 	// Username
-	if username := config.GetString("storage.username"); username != "" {
-		dbCreds = username + ":" + config.GetString("storage.password")
+	if username := conf.C.String("database.username"); username != "" {
+		dbCreds = username + ":" + conf.C.String("database.password")
 	} else {
 		return nil, fmt.Errorf("No username specified")
 	}
 
 	// Check to see if we have an admin password specified (that we will use to create the database if it does not exist)
-	pgPassword := config.GetString("POSTGRES_PASSWORD")
+	pgPassword := conf.C.String("POSTGRES_PASSWORD")
 	if pgPassword != "" {
-		pgUser := config.GetString("POSTGRES_USER")
+		pgUser := conf.C.String("POSTGRES_USER")
 		if pgUser == "" {
 			pgUser = "postgres"
 		}
@@ -59,28 +60,28 @@ func New() (*Client, error) {
 	}
 
 	// Host + Port
-	if hostname := config.GetString("storage.host"); hostname != "" {
+	if hostname := conf.C.String("database.host"); hostname != "" {
 		dbURL += "@" + hostname
 	} else {
 		return nil, fmt.Errorf("No hostname specified")
 	}
-	if port := config.GetString("storage.port"); port != "" {
+	if port := conf.C.String("database.port"); port != "" {
 		dbURL += ":" + port
 	}
 
 	// Database Name
-	dbName := config.GetString("storage.database")
+	dbName := conf.C.String("database.database")
 	if dbName == "" {
 		return nil, fmt.Errorf("No database specified")
 	}
 
 	// SSL Mode
-	if sslMode := config.GetString("storage.sslmode"); sslMode != "" {
+	if sslMode := conf.C.String("database.sslmode"); sslMode != "" {
 		// dbConnection += fmt.Sprintf("sslmode=%s ", sslMode)
 		dbURLOptions += fmt.Sprintf("?sslmode=%s", sslMode)
 	}
 
-	for retries := config.GetInt("storage.retries"); retries > 0 && !conf.Stop.Bool(); retries-- {
+	for retries := conf.C.Int("database.retries"); retries > 0 && !conf.Stop.Bool(); retries-- {
 		createDb, err := sql.Open("postgres", "postgres://"+dbCreateCreds+dbURL+dbURLOptions)
 		// Attempt to create the database if it doesn't exist
 		if err == nil {
@@ -98,12 +99,12 @@ func New() (*Client, error) {
 			return nil, fmt.Errorf("Could not connect to database: %s", err)
 		} else if strings.Contains(err.Error(), "connection refused") {
 			logger.Warnw("Connection to database timed out. Sleeping and retry.",
-				"storage.host", config.GetString("storage.host"),
-				"storage.username", config.GetString("storage.username"),
-				"storage.password", "****",
-				"storage.port", config.GetInt("storage.port"),
+				"database.host", conf.C.String("database.host"),
+				"database.username", conf.C.String("database.username"),
+				"database.password", "****",
+				"database.port", conf.C.Int("database.port"),
 			)
-			time.Sleep(config.GetDuration("storage.sleep_between_retries"))
+			time.Sleep(conf.C.Duration("database.sleep_between_retries"))
 			continue
 		}
 		logger.Infow("Creating database", "database", dbName)
@@ -127,8 +128,16 @@ func New() (*Client, error) {
 		return nil, fmt.Errorf("Could not connect to database: %s", err)
 	}
 
+	connConfig, err := pgx.ParseConfig(fullDbURL)
+	if err != nil {
+		return nil, fmt.Errorf("Could not parse pgx config: %s", err)
+	}
+	if conf.C.Bool("database.log_queries") {
+		connConfig.Logger = &queryLogger{logger: logger}
+	}
+
 	// Make the connection using the sqlx connector now that we know the database exists
-	db, err := sqlx.Connect("postgres", fullDbURL)
+	db, err := sqlx.Connect("pgx", stdlib.RegisterConnConfig(connConfig))
 	if err != nil {
 		return nil, fmt.Errorf("Could not connect to database: %s", err)
 	}
@@ -138,13 +147,13 @@ func New() (*Client, error) {
 		return nil, fmt.Errorf("Could not ping database %s", err)
 	}
 
-	db.SetMaxOpenConns(config.GetInt("storage.max_connections"))
+	db.SetMaxOpenConns(conf.C.Int("database.max_connections"))
 
 	logger.Debugw("Connected to database server",
-		"storage.host", config.GetString("storage.host"),
-		"storage.username", config.GetString("storage.username"),
-		"storage.port", config.GetInt("storage.port"),
-		"storage.database", config.GetString("storage.database"),
+		"database.host", conf.C.String("database.host"),
+		"database.username", conf.C.String("database.username"),
+		"database.port", conf.C.Int("database.port"),
+		"database.database", conf.C.String("database.database"),
 	)
 
 	c := &Client{
@@ -157,15 +166,23 @@ func New() (*Client, error) {
 	}
 
 	// wrap assets into Resource
-	s := bindata.Resource(migrations.AssetNames(),
-		func(name string) ([]byte, error) {
-			return migrations.Asset(name)
-		})
-	d, err := bindata.WithInstance(s)
+	assets, err := embed.AssetDir("postgres_migrations")
 	if err != nil {
-		return nil, fmt.Errorf("Could not create migrations reader: %v", err)
+		return nil, fmt.Errorf("Could not get migrations assets")
 	}
-	m, err := migrate.NewWithSourceInstance("go-bindata", d, fullDbURL)
+	assetSource := bindata.Resource(assets,
+		func(name string) ([]byte, error) {
+			return embed.Asset("postgres_migrations/" + name)
+		})
+	sourceDriver, err := bindata.WithInstance(assetSource)
+	if err != nil {
+		return nil, fmt.Errorf("Could not create migrations source driver: %v", err)
+	}
+	databaseDriver, err := postgres.WithInstance(db.DB, &postgres.Config{})
+	if err != nil {
+		return nil, fmt.Errorf("Could not create migrations database driver: %v", err)
+	}
+	migrateInstance, err := migrate.NewWithInstance("go-bindata", sourceDriver, "pgx", databaseDriver)
 	if err != nil {
 		logger.Errorw("Database migration error",
 			"error", err,
@@ -174,8 +191,8 @@ func New() (*Client, error) {
 	}
 
 	// Do we wipe the database
-	if config.GetBool("storage.wipe_confirm") {
-		err = m.Down()
+	if conf.C.Bool("database.wipe_confirm") {
+		err = migrateInstance.Down()
 		if err == migrate.ErrNoChange {
 			// Okay
 		} else if err != nil {
@@ -189,7 +206,7 @@ func New() (*Client, error) {
 	}
 
 	// Perform the migration up
-	err = m.Up()
+	err = migrateInstance.Up()
 	if err == migrate.ErrNoChange {
 		logger.Info("Database schmea current")
 	} else if err != nil {

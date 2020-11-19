@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -13,9 +12,9 @@ import (
 	"github.com/go-chi/render"
 	"github.com/snowzach/certtools"
 	"github.com/snowzach/certtools/autocert"
-	config "github.com/spf13/viper"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+
+	"github.com/snowzach/gorestapi/conf"
 )
 
 type Server struct {
@@ -33,61 +32,28 @@ func New() (*Server, error) {
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 
 	// Log Requests - Use appropriate format depending on the encoding
-	if config.GetBool("server.log_requests") {
-		switch config.GetString("logger.encoding") {
+	if conf.C.Bool("server.log_requests") {
+		switch conf.C.String("logger.encoding") {
 		case "stackdriver":
-			r.Use(loggerHTTPMiddlewareStackdriver(config.GetBool("server.log_requests_body"), config.GetStringSlice("server.log_disabled_http")))
+			r.Use(loggerHTTPMiddlewareStackdriver(conf.C.Bool("server.log_requests_body"), conf.C.Strings("server.log_disabled_http")))
 		default:
-			r.Use(loggerHTTPMiddlewareDefault(config.GetBool("server.log_requests_body"), config.GetStringSlice("server.log_disabled_http")))
+			r.Use(loggerHTTPMiddlewareDefault(conf.C.Bool("server.log_requests_body"), conf.C.Strings("server.log_disabled_http")))
 		}
-	}
-
-	// Log Requests
-	if config.GetBool("server.log_requests") {
-		r.Use(func(next http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				start := time.Now()
-				var requestID string
-				if reqID := r.Context().Value(middleware.RequestIDKey); reqID != nil {
-					requestID = reqID.(string)
-				}
-				ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
-				next.ServeHTTP(ww, r)
-
-				latency := time.Since(start)
-
-				fields := []zapcore.Field{
-					zap.Int("status", ww.Status()),
-					zap.Duration("took", latency),
-					zap.String("remote", r.RemoteAddr),
-					zap.String("request", r.RequestURI),
-					zap.String("method", r.Method),
-					zap.String("package", "server.request"),
-				}
-				if requestID != "" {
-					fields = append(fields, zap.String("request-id", requestID))
-				}
-				zap.L().Info("API Request", fields...)
-			})
-		})
 	}
 
 	// CORS Config
 	r.Use(cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{http.MethodHead, http.MethodOptions, http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch},
-		AllowedHeaders:   []string{"*"},
-		AllowCredentials: true,
-		MaxAge:           300,
+		AllowedOrigins:   conf.C.Strings("server.cors.allowed_origins"),
+		AllowedMethods:   conf.C.Strings("server.cors.allowed_methods"),
+		AllowedHeaders:   conf.C.Strings("server.cors.allowed_headers"),
+		AllowCredentials: conf.C.Bool("server.cors.allowed_credentials"),
+		MaxAge:           conf.C.Int("server.cors.max_age"),
 	}).Handler)
 
 	s := &Server{
 		logger: zap.S().With("package", "server"),
 		router: r,
 	}
-
-	// Register our routes
-	s.router.Get("/version", GetVersion())
 
 	return s, nil
 
@@ -97,7 +63,7 @@ func New() (*Server, error) {
 func (s *Server) ListenAndServe() error {
 
 	s.server = &http.Server{
-		Addr:    net.JoinHostPort(config.GetString("server.host"), config.GetString("server.port")),
+		Addr:    net.JoinHostPort(conf.C.String("server.host"), conf.C.String("server.port")),
 		Handler: s.router,
 	}
 
@@ -108,9 +74,9 @@ func (s *Server) ListenAndServe() error {
 	}
 
 	// Enable TLS?
-	if config.GetBool("server.tls") {
+	if conf.C.Bool("server.tls") {
 		var cert tls.Certificate
-		if config.GetBool("server.devcert") {
+		if conf.C.Bool("server.devcert") {
 			s.logger.Warn("WARNING: This server is using an insecure development tls certificate. This is for development only!!!")
 			cert, err = autocert.New(autocert.InsecureStringReader("localhost"))
 			if err != nil {
@@ -118,7 +84,7 @@ func (s *Server) ListenAndServe() error {
 			}
 		} else {
 			// Load keys from file
-			cert, err = tls.LoadX509KeyPair(config.GetString("server.certfile"), config.GetString("server.keyfile"))
+			cert, err = tls.LoadX509KeyPair(conf.C.String("server.certfile"), conf.C.String("server.keyfile"))
 			if err != nil {
 				return fmt.Errorf("Could not load server certificate: %v", err)
 			}
@@ -139,12 +105,12 @@ func (s *Server) ListenAndServe() error {
 			s.logger.Fatalw("API Listen error", "error", err, "address", s.server.Addr)
 		}
 	}()
-	s.logger.Infow("API Listening", "address", s.server.Addr, "tls", config.GetBool("server.tls"))
+	s.logger.Infow("API Listening", "address", s.server.Addr, "tls", conf.C.Bool("server.tls"))
 
 	// Enable profiler
-	if config.GetBool("server.profiler_enabled") && config.GetString("server.profiler_path") != "" {
-		zap.S().Debugw("Profiler enabled on API", "path", config.GetString("server.profiler_path"))
-		s.router.Mount(config.GetString("server.profiler_path"), middleware.Profiler())
+	if conf.C.Bool("server.profiler_enabled") && conf.C.String("server.profiler_path") != "" {
+		zap.S().Debugw("Profiler enabled on API", "path", conf.C.String("server.profiler_path"))
+		s.router.Mount(conf.C.String("server.profiler_path"), middleware.Profiler())
 	}
 
 	return nil

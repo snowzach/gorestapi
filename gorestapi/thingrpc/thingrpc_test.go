@@ -1,4 +1,4 @@
-package thingserver
+package thingrpc
 
 import (
 	"net/http"
@@ -12,6 +12,7 @@ import (
 
 	"github.com/snowzach/gorestapi/gorestapi"
 	"github.com/snowzach/gorestapi/mocks"
+	"github.com/snowzach/gorestapi/store"
 )
 
 func TestServerThingPost(t *testing.T) {
@@ -32,22 +33,19 @@ func TestServerThingPost(t *testing.T) {
 		Name: "name",
 	}
 
-	// Response
-	idResponse := map[string]string{"id": i.ID}
-
 	// Mock call to item store
-	ts.On("ThingSave", mock.AnythingOfType("*context.valueCtx"), i).Once().Return(i.ID, nil)
+	ts.On("ThingSave", mock.AnythingOfType("*context.valueCtx"), i).Once().Return(nil)
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
-	e.POST("/things").WithJSON(i).Expect().Status(http.StatusOK).JSON().Object().Equal(&idResponse)
+	e.POST("/things").WithJSON(i).Expect().Status(http.StatusOK).JSON().Object().Equal(i)
 
 	// Check remaining expectations
 	ts.AssertExpectations(t)
 
 }
 
-func TestServerThingGetAll(t *testing.T) {
+func TestServerThingsFind(t *testing.T) {
 
 	// Create test server
 	r := chi.NewRouter()
@@ -59,7 +57,7 @@ func TestServerThingGetAll(t *testing.T) {
 	err := Setup(r, ts)
 	assert.Nil(t, err)
 
-	// Create Item
+	// Return Item
 	i := []*gorestapi.Thing{
 		&gorestapi.Thing{
 			ID:   "id1",
@@ -72,18 +70,18 @@ func TestServerThingGetAll(t *testing.T) {
 	}
 
 	// Mock call to item store
-	ts.On("ThingFind", mock.AnythingOfType("*context.valueCtx")).Once().Return(i, nil)
+	ts.On("ThingsFind", mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("*store.FindQueryParameters")).Once().Return(i, int64(2), nil)
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
-	e.GET("/things").Expect().Status(http.StatusOK).JSON().Array().Equal(&i)
+	e.GET("/things").Expect().Status(http.StatusOK).JSON().Object().Equal(&store.Results{Count: 2, Results: i})
 
 	// Check remaining expectations
 	ts.AssertExpectations(t)
 
 }
 
-func TestServerThingGet(t *testing.T) {
+func TestServerThingGetByID(t *testing.T) {
 
 	// Create test server
 	r := chi.NewRouter()
@@ -113,7 +111,7 @@ func TestServerThingGet(t *testing.T) {
 
 }
 
-func TestServerThingDelete(t *testing.T) {
+func TestServerThingDeleteByID(t *testing.T) {
 
 	// Create test server
 	r := chi.NewRouter()
