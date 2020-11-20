@@ -1,20 +1,9 @@
 package gorestapi
 
 import (
-	"context"
-	"fmt"
+	"encoding/json"
 	"time"
-
-	"github.com/snowzach/gorestapi/store"
 )
-
-// ThingStore is the persistent store of things
-type ThingStore interface {
-	ThingGetByID(ctx context.Context, id string) (*Thing, error)
-	ThingSave(ctx context.Context, thing *Thing) error
-	ThingDeleteByID(ctx context.Context, id string) error
-	ThingsFind(ctx context.Context, fqp *store.FindQueryParameters) ([]*Thing, int64, error)
-}
 
 // Thing
 // swagger:model gorestapi_Thing
@@ -27,6 +16,8 @@ type Thing struct {
 	Updated time.Time `json:"updated,omitempty"`
 	// Name
 	Name string `json:"name"`
+	// Description
+	Description string `json:"description"`
 }
 
 // ThingExample
@@ -34,9 +25,12 @@ type Thing struct {
 type ThingExample struct {
 	// Name
 	Name string `json:"name"`
+	// Description
+	Description string `json:"description"`
 }
 
 // String is the stringer method
 func (t *Thing) String() string {
-	return fmt.Sprintf(`{"id":"%s","name":"%s"}`, t.ID, t.Name)
+	b, _ := json.Marshal(t)
+	return string(b)
 }

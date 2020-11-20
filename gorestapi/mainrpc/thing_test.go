@@ -1,4 +1,4 @@
-package thingrpc
+package mainrpc
 
 import (
 	"net/http"

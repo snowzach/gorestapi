@@ -139,6 +139,130 @@
           }
         }
       }
+    },
+    "/api/widgets": {
+      "get": {
+        "description": "Gets a list of widgets",
+        "tags": [
+          "WIDGETS"
+        ],
+        "summary": "Find Widgets",
+        "operationId": "WidgetsFind",
+        "parameters": [
+          {
+            "type": "int",
+            "description": "Number of records to return",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "int",
+            "description": "Offset of records to return",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filter id",
+            "name": "id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filter name",
+            "name": "name",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Widget Objects",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/gorestapi_Widget"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Creates or saves a widget. Omit the ID to auto generate.\nPass an existing ID to update.",
+        "tags": [
+          "WIDGETS"
+        ],
+        "summary": "Create/Save Widget",
+        "operationId": "WidgetSave",
+        "parameters": [
+          {
+            "type": "object",
+            "description": "Widget to Save/Update",
+            "name": "widget",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gorestapi_WidgetExample"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User Object",
+            "schema": {
+              "$ref": "#/definitions/gorestapi_Widget"
+            }
+          }
+        }
+      }
+    },
+    "/api/widgets/{id}": {
+      "get": {
+        "description": "Fetches a Widget",
+        "tags": [
+          "WIDGETS"
+        ],
+        "summary": "Get a Widget",
+        "operationId": "WidgetGetByID",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Widget ID to fetch",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Widget Object",
+            "schema": {
+              "$ref": "#/definitions/gorestapi_Widget"
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Deletes a Widget",
+        "tags": [
+          "WIDGETS"
+        ],
+        "summary": "Delete a Widget",
+        "operationId": "WidgetDeleteByID",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Widget ID to delete",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -151,6 +275,11 @@
           "type": "string",
           "format": "date-time",
           "x-go-name": "Created"
+        },
+        "description": {
+          "description": "Description",
+          "type": "string",
+          "x-go-name": "Description"
         },
         "id": {
           "description": "ID (Auto-Generated)",
@@ -176,6 +305,11 @@
       "description": "ThingExample",
       "type": "object",
       "properties": {
+        "description": {
+          "description": "Description",
+          "type": "string",
+          "x-go-name": "Description"
+        },
         "name": {
           "description": "Name",
           "type": "string",
@@ -183,6 +317,72 @@
         }
       },
       "x-go-name": "ThingExample",
+      "x-go-package": "github.com/snowzach/gorestapi/gorestapi"
+    },
+    "gorestapi_Widget": {
+      "description": "Widget",
+      "type": "object",
+      "properties": {
+        "created": {
+          "description": "Created Timestamp",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "Created"
+        },
+        "description": {
+          "description": "Description",
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "id": {
+          "description": "ID (Auto-Generated)",
+          "type": "string",
+          "x-go-name": "ID"
+        },
+        "name": {
+          "description": "Name",
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "thing": {
+          "$ref": "#/definitions/gorestapi_Thing"
+        },
+        "thing_id": {
+          "description": "ThingID",
+          "type": "string",
+          "x-go-name": "ThingID"
+        },
+        "updated": {
+          "description": "Updated Timestamp",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "Updated"
+        }
+      },
+      "x-go-name": "Widget",
+      "x-go-package": "github.com/snowzach/gorestapi/gorestapi"
+    },
+    "gorestapi_WidgetExample": {
+      "description": "WidgetExample",
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "Description",
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "name": {
+          "description": "Name",
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "thing_id": {
+          "description": "ThingID",
+          "type": "string",
+          "x-go-name": "ThingID"
+        }
+      },
+      "x-go-name": "WidgetExample",
       "x-go-package": "github.com/snowzach/gorestapi/gorestapi"
     }
   }

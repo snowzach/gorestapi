@@ -52,30 +52,18 @@ var (
 
 // Execute starts the program
 func Execute() {
-	// Run the program
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
-	}
-}
-
-// This is the main initializer handling cli, config and log
-func init() {
-	// Initialize configuration
-	cli.OnInitialize(initLog, initProfiler)
-}
-
-func initLog() {
 
 	conf.InitLogger()
 	logger = zap.S().With("package", "cmd")
 
-}
-
-// Profliter can explicitly listen on address/port
-func initProfiler() {
 	if conf.C.Bool("profiler.enabled") {
 		hostPort := net.JoinHostPort(conf.C.String("profiler.host"), conf.C.String("profiler.port"))
 		go http.ListenAndServe(hostPort, nil)
 		logger.Infof("Profiler enabled on http://%s", hostPort)
+	}
+
+	// Run the program
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 	}
 }

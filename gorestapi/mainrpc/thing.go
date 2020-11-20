@@ -1,4 +1,4 @@
-package thingrpc
+package mainrpc
 
 import (
 	"fmt"
@@ -6,38 +6,11 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
-	"go.uber.org/zap"
 
 	"github.com/snowzach/gorestapi/gorestapi"
 	"github.com/snowzach/gorestapi/server"
 	"github.com/snowzach/gorestapi/store"
 )
-
-// Server is the API web server
-type Server struct {
-	logger     *zap.SugaredLogger
-	router     chi.Router
-	thingStore gorestapi.ThingStore
-}
-
-// Setup will setup the API listener
-func Setup(router chi.Router, thingStore gorestapi.ThingStore) error {
-
-	s := &Server{
-		logger:     zap.S().With("package", "thingrpc"),
-		router:     router,
-		thingStore: thingStore,
-	}
-
-	// Base Functions
-	s.router.Post("/things", s.ThingSave())
-	s.router.Get("/things/{id}", s.ThingGetByID())
-	s.router.Delete("/things/{id}", s.ThingDeleteByID())
-	s.router.Get("/things", s.ThingsFind())
-
-	return nil
-
-}
 
 // ThingSave saves a thing
 func (s *Server) ThingSave() http.HandlerFunc {
@@ -76,7 +49,7 @@ func (s *Server) ThingSave() http.HandlerFunc {
 			return
 		}
 
-		err := s.thingStore.ThingSave(ctx, thing)
+		err := s.mainStore.ThingSave(ctx, thing)
 		if err != nil {
 			s.logger.Warnf("ThingSave error: %v", err)
 			render.Render(w, r, server.ErrInvalidRequest(fmt.Errorf("could not save thing: %v", err)))
@@ -118,7 +91,7 @@ func (s *Server) ThingGetByID() http.HandlerFunc {
 
 		id := chi.URLParam(r, "id")
 
-		thing, err := s.thingStore.ThingGetByID(ctx, id)
+		thing, err := s.mainStore.ThingGetByID(ctx, id)
 		if err == store.ErrNotFound {
 			render.Render(w, r, server.ErrNotFound)
 			return
@@ -160,7 +133,7 @@ func (s *Server) ThingDeleteByID() http.HandlerFunc {
 
 		id := chi.URLParam(r, "id")
 
-		err := s.thingStore.ThingDeleteByID(ctx, id)
+		err := s.mainStore.ThingDeleteByID(ctx, id)
 		if err == store.ErrNotFound {
 			render.Render(w, r, server.ErrNotFound)
 			return
@@ -222,7 +195,7 @@ func (s *Server) ThingsFind() http.HandlerFunc {
 
 		fqp := store.ParseURLValuesToFindQueryParameters(r.URL.Query())
 
-		things, count, err := s.thingStore.ThingsFind(ctx, fqp)
+		things, count, err := s.mainStore.ThingsFind(ctx, fqp)
 		if err != nil {
 			s.logger.Errorf("ThingsFind error: %v", err)
 			render.Render(w, r, server.ErrInternal(nil))

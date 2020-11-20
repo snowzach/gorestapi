@@ -22,7 +22,8 @@ const (
 	ThingFields = `COALESCE(thing.id, '') as "thing.id",
 	COALESCE(thing.created, '0001-01-01 00:00:00 UTC') as "thing.created",
 	COALESCE(thing.updated, '0001-01-01 00:00:00 UTC') as "thing.updated",
-	COALESCE(thing.name, '') as "thing.name"
+	COALESCE(thing.name, '') as "thing.name",
+	COALESCE(thing.description, '') as "thing.description"
 	`
 )
 
@@ -36,14 +37,15 @@ func (c *Client) ThingSave(ctx context.Context, thing *gorestapi.Thing) error {
 
 	err := c.db.GetContext(ctx, thing, `
 	WITH thing AS (
-		INSERT INTO thing (id, created, updated, name)
-		VALUES($1, NOW(), NOW(), $2)
+		INSERT INTO thing (id, created, updated, name, description)
+		VALUES($1, NOW(), NOW(), $2, $3)
 		ON CONFLICT (id) DO UPDATE
 		SET 
 		updated = NOW(),
-		name = $2
+		name = $2,
+		description = $3
 		RETURNING *
-	) `+ThingSelect+ThingFrom, thing.ID, thing.Name)
+	) `+ThingSelect+ThingFrom, thing.ID, thing.Name, thing.Description)
 	if err != nil {
 		return err
 	}
@@ -83,8 +85,9 @@ func (c *Client) ThingsFind(ctx context.Context, fqp *store.FindQueryParameters)
 	var queryParams = []interface{}{}
 
 	filterFields := store.FilterFieldTypes{
-		"thing.id":   store.FilterTypeEquals,
-		"thing.name": store.FilterTypeILike,
+		"thing.id":          store.FilterTypeEquals,
+		"thing.name":        store.FilterTypeILike,
+		"thing.description": store.FilterTypeILike,
 	}
 
 	sortFields := store.SortFields{

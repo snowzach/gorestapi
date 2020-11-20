@@ -9,7 +9,7 @@ import (
 
 	"github.com/snowzach/gorestapi/conf"
 	"github.com/snowzach/gorestapi/embed"
-	"github.com/snowzach/gorestapi/gorestapi/thingrpc"
+	"github.com/snowzach/gorestapi/gorestapi/mainrpc"
 	"github.com/snowzach/gorestapi/server"
 	"github.com/snowzach/gorestapi/store/postgres"
 )
@@ -25,9 +25,10 @@ var (
 		Long:  `Start API`,
 		Run: func(cmd *cli.Command, args []string) { // Initialize the databse
 
+			// Database
 			pg, err := postgres.New()
 			if err != nil {
-				logger.Fatalw("Database Error", "error", err)
+				logger.Fatalw("Database error", "error", err)
 			}
 
 			// Create the server
@@ -36,9 +37,9 @@ var (
 				logger.Fatalw("Could not create server", "error", err)
 			}
 
-			// Main RPC
-			if err = thingrpc.Setup(s.Router(), pg); err != nil {
-				logger.Fatalw("Could not setup bcrpc", "error", err)
+			// ThingRPC
+			if err = mainrpc.Setup(s.Router(), pg); err != nil {
+				logger.Fatalw("Could not setup thingrpc", "error", err)
 			}
 
 			// Serve api-docs and swagger-ui
