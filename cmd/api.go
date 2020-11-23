@@ -57,11 +57,11 @@ var (
 				)
 			}
 
-			conf.Stop.SetupInterrupt()
+			conf.Stop.InitInterrupt()
 			<-conf.Stop.Chan() // Wait until StopChan
 
-			conf.Stop.Wait() // Wait until everyone cleans up
-			zap.L().Sync()   // Flush the logger
+			conf.Stop.Wait()   // Wait until everyone cleans up
+			_ = zap.L().Sync() // Flush the logger
 
 		},
 	}

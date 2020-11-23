@@ -58,7 +58,11 @@ func Execute() {
 
 	if conf.C.Bool("profiler.enabled") {
 		hostPort := net.JoinHostPort(conf.C.String("profiler.host"), conf.C.String("profiler.port"))
-		go http.ListenAndServe(hostPort, nil)
+		go func() {
+			if err := http.ListenAndServe(hostPort, nil); err != nil {
+				logger.Errorf("profiler server error: %v", err)
+			}
+		}()
 		logger.Infof("Profiler enabled on http://%s", hostPort)
 	}
 

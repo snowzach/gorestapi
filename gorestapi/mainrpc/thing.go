@@ -45,14 +45,14 @@ func (s *Server) ThingSave() http.HandlerFunc {
 
 		var thing = new(gorestapi.Thing)
 		if err := render.DecodeJSON(r.Body, thing); err != nil {
-			render.Render(w, r, server.ErrInvalidRequest(err))
+			_ = render.Render(w, r, server.ErrInvalidRequest(err))
 			return
 		}
 
-		err := s.mainStore.ThingSave(ctx, thing)
+		err := s.grStore.ThingSave(ctx, thing)
 		if err != nil {
 			s.logger.Warnf("ThingSave error: %v", err)
-			render.Render(w, r, server.ErrInvalidRequest(fmt.Errorf("could not save thing: %v", err)))
+			_ = render.Render(w, r, server.ErrInvalidRequest(fmt.Errorf("could not save thing: %v", err)))
 			return
 		}
 
@@ -91,13 +91,13 @@ func (s *Server) ThingGetByID() http.HandlerFunc {
 
 		id := chi.URLParam(r, "id")
 
-		thing, err := s.mainStore.ThingGetByID(ctx, id)
+		thing, err := s.grStore.ThingGetByID(ctx, id)
 		if err == store.ErrNotFound {
-			render.Render(w, r, server.ErrNotFound)
+			_ = render.Render(w, r, server.ErrNotFound)
 			return
 		} else if err != nil {
 			s.logger.Errorf("ThingGetByID error: %v", err)
-			render.Render(w, r, server.ErrInternal(nil))
+			_ = render.Render(w, r, server.ErrInternal(nil))
 			return
 		}
 
@@ -133,13 +133,13 @@ func (s *Server) ThingDeleteByID() http.HandlerFunc {
 
 		id := chi.URLParam(r, "id")
 
-		err := s.mainStore.ThingDeleteByID(ctx, id)
+		err := s.grStore.ThingDeleteByID(ctx, id)
 		if err == store.ErrNotFound {
-			render.Render(w, r, server.ErrNotFound)
+			_ = render.Render(w, r, server.ErrNotFound)
 			return
 		} else if err != nil {
 			s.logger.Errorf("ThingDeleteByID error: %v", err)
-			render.Render(w, r, server.ErrInternal(nil))
+			_ = render.Render(w, r, server.ErrInternal(nil))
 			return
 		}
 
@@ -195,10 +195,10 @@ func (s *Server) ThingsFind() http.HandlerFunc {
 
 		fqp := store.ParseURLValuesToFindQueryParameters(r.URL.Query())
 
-		things, count, err := s.mainStore.ThingsFind(ctx, fqp)
+		things, count, err := s.grStore.ThingsFind(ctx, fqp)
 		if err != nil {
 			s.logger.Errorf("ThingsFind error: %v", err)
-			render.Render(w, r, server.ErrInternal(nil))
+			_ = render.Render(w, r, server.ErrInternal(nil))
 			return
 		}
 

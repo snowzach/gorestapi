@@ -37,7 +37,7 @@ embed/public/api-docs/swagger.json: tools ${SWAGGERSOURCE}
 
 .PHONY: mocks
 mocks: tools
-	mockery -dir ./gorestapi -name ThingStore
+	mockery -dir ./gorestapi -name GRStore
 
 .PHONY: ${EXECUTABLE}
 ${EXECUTABLE}: tools ${EMBEDDIR}/bindata.go
@@ -55,7 +55,7 @@ deps:
 
 .PHONY: lint
 lint:
-	docker run --rm -v ${PWD}:/app -e -w /app golangci/golangci-lint:v1.27.0 golangci-lint run -v --timeout 5m
+	docker run --rm -v ${PWD}:/app -w /app golangci/golangci-lint:v1.27.0 golangci-lint run -v --timeout 5m
 
 .PHONY: hadolint
 hadolint:

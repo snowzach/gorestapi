@@ -11,8 +11,8 @@
   ],
   "swagger": "2.0",
   "info": {
-    "description": "This is the Blue Command API\n\nPlease use the login endpoint to obtain a JWT token and use it in subsequent calls via the Authorization: Beaerer JWT header\nscanner RPC endpoints only require Authentication: Bearer password",
-    "title": "BlueCommand API",
+    "description": "This is the GoREST API\n\nGeneral notes should go here",
+    "title": "GoREST API",
     "version": "0.0.1"
   },
   "paths": {

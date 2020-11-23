@@ -31,7 +31,7 @@ func newStop() *stop {
 	}
 }
 
-func (s *stop) SetupInterrupt() {
+func (s *stop) InitInterrupt() {
 
 	// Handle signals
 	signalChannel := make(chan os.Signal, 1)

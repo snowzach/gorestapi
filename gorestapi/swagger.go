@@ -1,9 +1,8 @@
-// Package classification BlueCommand API
+// Package classification GoREST API
 //
-// This is the Blue Command API
+// This is the GoREST API
 //
-// Please use the login endpoint to obtain a JWT token and use it in subsequent calls via the Authorization: Beaerer JWT header
-// scanner RPC endpoints only require Authentication: Bearer password
+// General notes should go here
 //
 //     Schemes: http, https
 //     Version: 0.0.1

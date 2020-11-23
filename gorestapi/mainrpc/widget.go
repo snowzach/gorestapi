@@ -49,7 +49,7 @@ func (s *Server) WidgetSave() http.HandlerFunc {
 			return
 		}
 
-		err := s.mainStore.WidgetSave(ctx, widget)
+		err := s.grStore.WidgetSave(ctx, widget)
 		if err != nil {
 			s.logger.Warnf("WidgetSave error: %v", err)
 			render.Render(w, r, server.ErrInvalidRequest(fmt.Errorf("could not save widget: %v", err)))
@@ -91,7 +91,7 @@ func (s *Server) WidgetGetByID() http.HandlerFunc {
 
 		id := chi.URLParam(r, "id")
 
-		widget, err := s.mainStore.WidgetGetByID(ctx, id)
+		widget, err := s.grStore.WidgetGetByID(ctx, id)
 		if err == store.ErrNotFound {
 			render.Render(w, r, server.ErrNotFound)
 			return
@@ -133,7 +133,7 @@ func (s *Server) WidgetDeleteByID() http.HandlerFunc {
 
 		id := chi.URLParam(r, "id")
 
-		err := s.mainStore.WidgetDeleteByID(ctx, id)
+		err := s.grStore.WidgetDeleteByID(ctx, id)
 		if err == store.ErrNotFound {
 			render.Render(w, r, server.ErrNotFound)
 			return
@@ -195,7 +195,7 @@ func (s *Server) WidgetsFind() http.HandlerFunc {
 
 		fqp := store.ParseURLValuesToFindQueryParameters(r.URL.Query())
 
-		widgets, count, err := s.mainStore.WidgetsFind(ctx, fqp)
+		widgets, count, err := s.grStore.WidgetsFind(ctx, fqp)
 		if err != nil {
 			s.logger.Errorf("WidgetsFind error: %v", err)
 			render.Render(w, r, server.ErrInternal(nil))

@@ -74,13 +74,18 @@ func init() {
 		envLookup[envReplacer.Replace(key)] = key
 	}
 	// Load the environment variables, compare to our lookup of existing values and set override value
-	_ = C.Load(env.Provider("", ".", func(s string) string {
+	_ = C.Load(env.ProviderWithValue("", ".", func(key string, value string) (string, interface{}) {
 		// Convert environemnt variable to lower case and change underscore to dot
-		key := envReplacer.Replace(strings.ToLower(s))
+		key = envReplacer.Replace(strings.ToLower(key))
 		if replacement, found := envLookup[key]; found {
-			return replacement
+			// Check the existing type of the variable, and allow modifying
+			switch C.Get(replacement).(type) {
+			case []interface{}, []string: // If existing value is string slice, split on space
+				return replacement, strings.Split(value, " ")
+			}
+			return replacement, value
 		}
-		return "" // No existing variable, skip it
+		return "", nil // No existing variable, skip it
 	}), nil)
 
 }
