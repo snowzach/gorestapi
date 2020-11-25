@@ -59,18 +59,18 @@ func TestThingsFind(t *testing.T) {
 
 	// Return Item
 	i := []*gorestapi.Thing{
-		&gorestapi.Thing{
+		{
 			ID:   "id1",
 			Name: "name1",
 		},
-		&gorestapi.Thing{
+		{
 			ID:   "id2",
 			Name: "name2",
 		},
 	}
 
 	// Mock call to item store
-	grs.On("ThingsFind", mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("*store.FindQueryParameters")).Once().Return(i, int64(2), nil)
+	grs.On("ThingsFind", mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("*queryp.QueryParameters")).Once().Return(i, int64(2), nil)
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)

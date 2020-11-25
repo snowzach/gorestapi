@@ -2,6 +2,8 @@ package queryp
 
 import (
 	"errors"
+	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -9,35 +11,51 @@ import (
 )
 
 // Handles parsing query requests with complex matching and precedence
-var stringQueryParser = regexp.MustCompile("(&|^|\\|)(\\(*)([a-zA-Z_.]+)(<=|=<|>=|=>|=~|!=~|!=|<|>|=)([^&|\\)|$]+)(\\)*)")
-
 var (
+	stringQueryParser = regexp.MustCompile("(&|^|\\|)(\\(*)([a-zA-Z_.]+)(!=~~|=~~|!=~|=~|!:~|!:|:~|:|<=|=<|>=|=>|!=|<|>|=)([^&|\\)|$]+)(\\)*)")
+
 	ErrCouldNotParse = errors.New("could not parse")
 )
+
+func ParseRawQuery(rq string) (*QueryParameters, error) {
+	q, err := url.PathUnescape(rq)
+	if err != nil {
+		return nil, err
+	}
+	return ParseQuery(q)
+}
 
 // ParseQuery converts a string into query parameters
 // This loosely follows standard HTTP URL encoding
 func ParseQuery(q string) (*QueryParameters, error) {
-
-	matches := stringQueryParser.FindAllStringSubmatch(q, -1)
-	if len(matches) == 0 {
-		return nil, nil
-	}
-
-	// for i, match := range matches {
-	// 	fmt.Printf("%d: %v\n", i, match)
-	// }
 
 	qp := &QueryParameters{
 		Sort:    make(Sort, 0),
 		Options: make(Options),
 	}
 
+	if len(q) == 0 {
+		return qp, nil
+	}
+
+	matches := stringQueryParser.FindAllStringSubmatch(q, -1)
+	if len(matches) == 0 {
+		return nil, ErrCouldNotParse
+	}
+
+	for i, match := range matches {
+		fmt.Printf("%d: %v\n", i, match)
+	}
+
 	// Recursive parse function
 	var parsedChars int
 	var pos int
-	var parse func(depth int) Filter
-	parse = func(depth int) Filter {
+	var found bool
+	var err error
+	var parse func(depth int) (Filter, error)
+	parse = func(depth int) (Filter, error) {
+		start := true
+
 		filter := make([]FilterTerm, 0)
 		for pos < len(matches) {
 
@@ -50,43 +68,31 @@ func ParseQuery(q string) (*QueryParameters, error) {
 			// m[5] = value
 			// m[6] = close parens
 
-			var logic FilterLogic // Default is AND if omitted
-			switch m[1] {
-			case "&":
-				logic = FilterLogicAnd
-			case "|":
-				logic = FilterLogicOr
+			var logic FilterLogic // Default is START if omitted
+			if start {
+				logic = FilterLogicStart
+				start = false
+			} else {
+				logic, found = FilterLogicSymToFilterLogic[m[1]]
+				if !found {
+					return nil, fmt.Errorf("invalid filter logic: %s", m[1])
+				}
 			}
 
-			var op FilterOp // Default is EQUALS if omitted
-			switch m[4] {
-			case "<=":
-				op = FilterOpLessThanEqual
-			case "=<":
-				op = FilterOpGreaterThanEqual
-			case ">=":
-				op = FilterOpGreaterThanEqual
-			case "=>":
-				op = FilterOpGreaterThanEqual
-			case "=~":
-				op = FilterOpILike
-			case "!=~":
-				op = FilterOpNotILike
-			case "!=":
-				op = FilterOpNotEquals
-			case "<":
-				op = FilterOpLessThan
-			case ">":
-				op = FilterOpGreaterThan
-			case "=":
-				op = FilterOpEquals
+			op, found := FilterOpSymToFilterOp[m[4]]
+			if !found {
+				return nil, fmt.Errorf("invalid filter logic: %s", m[4])
 			}
 
 			// If we have a paren we haven't traversed down into
 			if len(m[2]) > depth {
+				subFilter, err := parse(depth + 1 + len(m[2]) - len(m[6]))
+				if err != nil {
+					return nil, err
+				}
 				filter = append(filter, FilterTerm{
 					Logic:     logic,
-					SubFilter: parse(depth + 1 + len(m[2]) - len(m[6])), // Parse, handle redundant parens
+					SubFilter: subFilter, // Parse, handle redundant parens
 				})
 
 			} else {
@@ -109,9 +115,9 @@ func ParseQuery(q string) (*QueryParameters, error) {
 					case "sort":
 						for _, sortField := range strings.Split(value, ",") {
 							if len(sortField) > 1 && sortField[0] == '-' { // Reverse sort
-								qp.Sort = append(qp.Sort, SortField{Field: sortField[1:], Desc: true})
+								qp.Sort = append(qp.Sort, SortTerm{Field: sortField[1:], Desc: true})
 							} else {
-								qp.Sort = append(qp.Sort, SortField{Field: sortField})
+								qp.Sort = append(qp.Sort, SortTerm{Field: sortField})
 							}
 						}
 						pos++
@@ -132,17 +138,22 @@ func ParseQuery(q string) (*QueryParameters, error) {
 					Field: Field(field),
 					Value: value,
 				})
+
 			}
 			if len(m[6]) > 0 { // Close Paren
-				return filter
+				return filter, nil
 			}
 			pos++
 		}
-		return filter
+
+		return filter, nil
 	}
 
 	// Parse the filter
-	qp.Filter = parse(0)
+	qp.Filter, err = parse(0)
+	if err != nil {
+		return nil, err
+	}
 
 	// If the entire string was not parsed, return error
 	if parsedChars != len(q) {

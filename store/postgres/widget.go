@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/snowzach/gorestapi/gorestapi"
+	"github.com/snowzach/gorestapi/queryp"
+	"github.com/snowzach/gorestapi/queryp/qppg"
 	"github.com/snowzach/gorestapi/store"
 )
 
@@ -52,7 +54,7 @@ func (c *Client) WidgetSave(ctx context.Context, widget *gorestapi.Widget) error
 		RETURNING *
 	) `+WidgetSelect+WidgetFrom, widget.ID, widget.Name, widget.Description, widget.ThingID)
 	if err != nil {
-		return err
+		return wrapError(err)
 	}
 
 	widget.SyncDB()
@@ -69,7 +71,7 @@ func (c *Client) WidgetGetByID(ctx context.Context, id string) (*gorestapi.Widge
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	} else if err != nil {
-		return nil, err
+		return nil, wrapError(err)
 	}
 
 	widget.SyncDB()
@@ -83,58 +85,61 @@ func (c *Client) WidgetDeleteByID(ctx context.Context, id string) error {
 
 	_, err := c.db.ExecContext(ctx, `DELETE FROM widget WHERE widget.id = $1`, id)
 	if err != nil {
-		return err
+		return wrapError(err)
 	}
 	return nil
 
 }
 
 // WidgetsFind fetches a widgets with filter and pagination
-func (c *Client) WidgetsFind(ctx context.Context, fqp *store.FindQueryParameters) ([]*gorestapi.Widget, int64, error) {
+func (c *Client) WidgetsFind(ctx context.Context, qp *queryp.QueryParameters) ([]*gorestapi.Widget, int64, error) {
 
 	var queryClause strings.Builder
 	var queryParams = []interface{}{}
 
-	filterFields := store.FilterFieldTypes{
-		"widget.id":   store.FilterTypeEquals,
-		"widget.name": store.FilterTypeILike,
+	filterFields := queryp.FilterFieldTypes{
+		"widget.id":          queryp.FilterTypeSimple,
+		"widget.name":        queryp.FilterTypeString,
+		"widget.description": queryp.FilterTypeString,
 	}
 
-	sortFields := store.SortFields{
+	sortFields := queryp.SortFields{
 		"widget.id",
 		"widget.created",
 		"widget.updated",
 		"widget.name",
 	}
 	// Default sort
-	if len(fqp.Sort) == 0 {
-		fqp.Sort = store.SortValues{&store.Sort{Field: "widget.id", Desc: false}}
+	if len(qp.Sort) == 0 {
+		qp.Sort = queryp.Sort{queryp.SortTerm{Field: "widget.id", Desc: false}}
 	}
 
-	if err := c.FilterQuery(filterFields, fqp.PreFilter, fqp.PreFilterInclusive, &queryClause, &queryParams); err != nil {
+	if len(qp.Filter) > 0 {
+		queryClause.WriteString(" WHERE ")
+	}
+
+	if err := qppg.FilterQuery(filterFields, qp.Filter, &queryClause, &queryParams); err != nil {
 		return nil, 0, err
 	}
-	if err := c.FilterQuery(filterFields, fqp.Filter, fqp.FilterInclusive, &queryClause, &queryParams); err != nil {
-		return nil, 0, err
-	}
+
 	var count int64
-	if err := c.db.GetContext(ctx, &count, `SELECT COUNT(*) AS count`+WidgetFrom+` WHERE 1=1`+queryClause.String(), queryParams...); err != nil {
+	if err := c.db.GetContext(ctx, &count, `SELECT COUNT(*) AS count`+WidgetFrom+queryClause.String(), queryParams...); err != nil {
+		return nil, 0, wrapError(err)
+	}
+	if err := qppg.SortQuery(sortFields, qp.Sort, &queryClause, &queryParams); err != nil {
 		return nil, 0, err
 	}
-	if err := c.SortQuery(sortFields, fqp.Sort, &queryClause, &queryParams); err != nil {
-		return nil, 0, err
+	if qp.Limit > 0 {
+		queryClause.WriteString(" LIMIT " + strconv.Itoa(qp.Limit))
 	}
-	if fqp.Limit > 0 {
-		queryClause.WriteString(" LIMIT " + strconv.Itoa(fqp.Limit))
-	}
-	if fqp.Offset > 0 {
-		queryClause.WriteString(" OFFSET " + strconv.Itoa(fqp.Offset))
+	if qp.Offset > 0 {
+		queryClause.WriteString(" OFFSET " + strconv.Itoa(qp.Offset))
 	}
 
 	var widgets = make([]*gorestapi.Widget, 0)
-	err := c.db.SelectContext(ctx, &widgets, WidgetSelect+WidgetFrom+` WHERE 1=1`+queryClause.String(), queryParams...)
+	err := c.db.SelectContext(ctx, &widgets, WidgetSelect+WidgetFrom+queryClause.String(), queryParams...)
 	if err != nil {
-		return widgets, 0, err
+		return widgets, 0, wrapError(err)
 	}
 
 	for _, widget := range widgets {

@@ -121,11 +121,3 @@ func (s *Server) ListenAndServe() error {
 func (s *Server) Router() chi.Router {
 	return s.router
 }
-
-// RenderOrErrInternal will render whatever you pass it (assuming it has Renderer) or prints an internal error
-func RenderOrErrInternal(w http.ResponseWriter, r *http.Request, d render.Renderer) {
-	if err := render.Render(w, r, d); err != nil {
-		render.Render(w, r, ErrInternal(err))
-		return
-	}
-}

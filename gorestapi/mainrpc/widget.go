@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/render"
 
 	"github.com/snowzach/gorestapi/gorestapi"
+	"github.com/snowzach/gorestapi/queryp"
 	"github.com/snowzach/gorestapi/server"
 	"github.com/snowzach/gorestapi/store"
 )
@@ -45,14 +46,19 @@ func (s *Server) WidgetSave() http.HandlerFunc {
 
 		var widget = new(gorestapi.Widget)
 		if err := render.DecodeJSON(r.Body, widget); err != nil {
-			render.Render(w, r, server.ErrInvalidRequest(err))
+			server.RenderErrInvalidRequest(w, err)
 			return
 		}
 
 		err := s.grStore.WidgetSave(ctx, widget)
 		if err != nil {
-			s.logger.Warnf("WidgetSave error: %v", err)
-			render.Render(w, r, server.ErrInvalidRequest(fmt.Errorf("could not save widget: %v", err)))
+			if ierr, ok := err.(*store.InternalError); ok {
+				errID := server.ErrorID()
+				s.logger.Errorf("WidgetSave error(%s): %v", errID, ierr.Err)
+				server.RenderErrInternal(w, nil, errID)
+			} else {
+				server.RenderErrInvalidRequest(w, fmt.Errorf("could not save widget: %v", err))
+			}
 			return
 		}
 
@@ -93,17 +99,21 @@ func (s *Server) WidgetGetByID() http.HandlerFunc {
 
 		widget, err := s.grStore.WidgetGetByID(ctx, id)
 		if err == store.ErrNotFound {
-			render.Render(w, r, server.ErrNotFound)
+			server.RenderErrNotFound(w)
 			return
 		} else if err != nil {
-			s.logger.Errorf("WidgetGetByID error: %v", err)
-			render.Render(w, r, server.ErrInternal(nil))
+			if ierr, ok := err.(*store.InternalError); ok {
+				errID := server.ErrorID()
+				s.logger.Errorf("WidgetGetByID error(%s): %v", errID, ierr.Err)
+				server.RenderErrInternal(w, nil, errID)
+			} else {
+				server.RenderErrInvalidRequest(w, fmt.Errorf("could not get widget: %v", err))
+			}
 			return
 		}
 
-		render.JSON(w, r, widget)
+		server.RenderJSON(w, http.StatusOK, widget)
 	}
-
 }
 
 // WidgetDeleteByID deletes a widget
@@ -135,18 +145,21 @@ func (s *Server) WidgetDeleteByID() http.HandlerFunc {
 
 		err := s.grStore.WidgetDeleteByID(ctx, id)
 		if err == store.ErrNotFound {
-			render.Render(w, r, server.ErrNotFound)
+			server.RenderErrNotFound(w)
 			return
 		} else if err != nil {
-			s.logger.Errorf("WidgetDeleteByID error: %v", err)
-			render.Render(w, r, server.ErrInternal(nil))
+			if ierr, ok := err.(*store.InternalError); ok {
+				errID := server.ErrorID()
+				s.logger.Errorf("WidgetDeleteByID error(%s): %v", errID, ierr.Err)
+				server.RenderErrInternal(w, nil, errID)
+			} else {
+				server.RenderErrInvalidRequest(w, fmt.Errorf("could not delete widget: %v", err))
+			}
 			return
 		}
 
-		render.NoContent(w, r)
-
+		server.RenderNoContent(w)
 	}
-
 }
 
 // WidgetsFind finds widgets
@@ -193,17 +206,23 @@ func (s *Server) WidgetsFind() http.HandlerFunc {
 
 		ctx := r.Context()
 
-		fqp := store.ParseURLValuesToFindQueryParameters(r.URL.Query())
-
-		widgets, count, err := s.grStore.WidgetsFind(ctx, fqp)
+		qp, err := queryp.ParseRawQuery(r.URL.RawQuery)
 		if err != nil {
-			s.logger.Errorf("WidgetsFind error: %v", err)
-			render.Render(w, r, server.ErrInternal(nil))
+			server.RenderErrInvalidRequest(w, err)
+		}
+
+		widgets, count, err := s.grStore.WidgetsFind(ctx, qp)
+		if err != nil {
+			if ierr, ok := err.(*store.InternalError); ok {
+				errID := server.ErrorID()
+				s.logger.Errorf("WidgetsFind error(%s): %v", errID, ierr.Err)
+				server.RenderErrInternal(w, nil, errID)
+			} else {
+				server.RenderErrInvalidRequest(w, fmt.Errorf("could not find widgets: %v", err))
+			}
 			return
 		}
 
-		render.JSON(w, r, store.Results{Count: count, Results: widgets})
-
+		server.RenderJSON(w, http.StatusOK, store.Results{Count: count, Results: widgets})
 	}
-
 }

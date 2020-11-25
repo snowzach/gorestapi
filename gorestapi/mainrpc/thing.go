@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/render"
 
 	"github.com/snowzach/gorestapi/gorestapi"
+	"github.com/snowzach/gorestapi/queryp"
 	"github.com/snowzach/gorestapi/server"
 	"github.com/snowzach/gorestapi/store"
 )
@@ -45,15 +46,19 @@ func (s *Server) ThingSave() http.HandlerFunc {
 
 		var thing = new(gorestapi.Thing)
 		if err := render.DecodeJSON(r.Body, thing); err != nil {
-			_ = render.Render(w, r, server.ErrInvalidRequest(err))
+			server.RenderErrInvalidRequest(w, err)
 			return
 		}
 
 		err := s.grStore.ThingSave(ctx, thing)
 		if err != nil {
-			s.logger.Warnf("ThingSave error: %v", err)
-			_ = render.Render(w, r, server.ErrInvalidRequest(fmt.Errorf("could not save thing: %v", err)))
-			return
+			if ierr, ok := err.(*store.InternalError); ok {
+				errID := server.ErrorID()
+				s.logger.Errorf("ThingSave error(%s): %v", errID, ierr.Err)
+				server.RenderErrInternal(w, nil, errID)
+			} else {
+				server.RenderErrInvalidRequest(w, fmt.Errorf("could not save thing: %v", err))
+			}
 		}
 
 		render.JSON(w, r, thing)
@@ -93,15 +98,19 @@ func (s *Server) ThingGetByID() http.HandlerFunc {
 
 		thing, err := s.grStore.ThingGetByID(ctx, id)
 		if err == store.ErrNotFound {
-			_ = render.Render(w, r, server.ErrNotFound)
+			server.RenderErrNotFound(w)
 			return
 		} else if err != nil {
-			s.logger.Errorf("ThingGetByID error: %v", err)
-			_ = render.Render(w, r, server.ErrInternal(nil))
-			return
+			if ierr, ok := err.(*store.InternalError); ok {
+				errID := server.ErrorID()
+				s.logger.Errorf("ThingGetByID error(%s): %v", errID, ierr.Err)
+				server.RenderErrInternal(w, nil, errID)
+			} else {
+				server.RenderErrInvalidRequest(w, fmt.Errorf("could not get thing: %v", err))
+			}
 		}
 
-		render.JSON(w, r, thing)
+		server.RenderJSON(w, http.StatusOK, thing)
 	}
 
 }
@@ -135,15 +144,19 @@ func (s *Server) ThingDeleteByID() http.HandlerFunc {
 
 		err := s.grStore.ThingDeleteByID(ctx, id)
 		if err == store.ErrNotFound {
-			_ = render.Render(w, r, server.ErrNotFound)
+			server.RenderErrNotFound(w)
 			return
 		} else if err != nil {
-			s.logger.Errorf("ThingDeleteByID error: %v", err)
-			_ = render.Render(w, r, server.ErrInternal(nil))
-			return
+			if ierr, ok := err.(*store.InternalError); ok {
+				errID := server.ErrorID()
+				s.logger.Errorf("ThingDeleteByID error(%s): %v", errID, ierr.Err)
+				server.RenderErrInternal(w, nil, errID)
+			} else {
+				server.RenderErrInvalidRequest(w, fmt.Errorf("could not delete thing: %v", err))
+			}
 		}
 
-		render.NoContent(w, r)
+		server.RenderNoContent(w)
 
 	}
 
@@ -193,16 +206,23 @@ func (s *Server) ThingsFind() http.HandlerFunc {
 
 		ctx := r.Context()
 
-		fqp := store.ParseURLValuesToFindQueryParameters(r.URL.Query())
-
-		things, count, err := s.grStore.ThingsFind(ctx, fqp)
+		qp, err := queryp.ParseRawQuery(r.URL.RawQuery)
 		if err != nil {
-			s.logger.Errorf("ThingsFind error: %v", err)
-			_ = render.Render(w, r, server.ErrInternal(nil))
-			return
+			server.RenderErrInvalidRequest(w, err)
 		}
 
-		render.JSON(w, r, store.Results{Count: count, Results: things})
+		things, count, err := s.grStore.ThingsFind(ctx, qp)
+		if err != nil {
+			if ierr, ok := err.(*store.InternalError); ok {
+				errID := server.ErrorID()
+				s.logger.Errorf("ThingsFind error(%s): %v", errID, ierr.Err)
+				server.RenderErrInternal(w, nil, errID)
+			} else {
+				server.RenderErrInvalidRequest(w, fmt.Errorf("could not find things: %v", err))
+			}
+		}
+
+		server.RenderJSON(w, http.StatusOK, store.Results{Count: count, Results: things})
 
 	}
 

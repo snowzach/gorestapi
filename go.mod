@@ -13,6 +13,7 @@ require (
 	github.com/go-chi/render v1.0.1
 	github.com/golang-migrate/migrate/v4 v4.13.0
 	github.com/imkira/go-interpol v1.1.0 // indirect
+	github.com/jackc/pgconn v1.7.2
 	github.com/jackc/pgx/v4 v4.9.2
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect

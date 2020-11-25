@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/rs/xid"
 )
 
 // RenderJSON writes an http response using the value passed in v as JSON.
@@ -19,6 +21,10 @@ func RenderJSON(w http.ResponseWriter, code int, v interface{}) {
 		w.WriteHeader(code)
 	}
 	_, _ = w.Write(b.Bytes())
+}
+
+func RenderNoContent(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNoContent)
 }
 
 type ErrResponse struct {
@@ -45,4 +51,8 @@ func RenderErrInvalidRequest(w http.ResponseWriter, err error) {
 
 func RenderErrInternal(w http.ResponseWriter, err error, errID string) {
 	RenderJSON(w, http.StatusInternalServerError, ErrResponse{Status: "internal error", Error: err.Error(), ErrorID: errID})
+}
+
+func ErrorID() string {
+	return xid.New().String()
 }

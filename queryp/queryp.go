@@ -1,8 +1,8 @@
 package queryp
 
 import (
+	"bytes"
 	"encoding/json"
-	"fmt"
 	"strings"
 )
 
@@ -17,51 +17,34 @@ type QueryParameters struct {
 type Filter []FilterTerm
 
 type FilterTerm struct {
-	Logic FilterLogic
-	Op    FilterOp
-	Field Field
-	Value interface{}
+	Logic FilterLogic `json:"logic"`
+	Op    FilterOp    `json:"op"`
+	Field Field       `json:"field"`
+	Value string      `json:"value"`
 
-	SubFilter Filter
+	SubFilter Filter `json:"sub_filter,omitempty"`
 }
-
-type FilterOp int
-type FilterLogic int
 
 const (
 	FilterTypeNotFound FilterType = iota
-	FilterTypeEquals
+	FilterTypeSimple
 	FilterTypeString
+	FilterTypeNumeric
 	FilterTypeTime
 	FilterTypeBool
-	FilterTypeCompare
-)
-
-const (
-	FilterOpEquals FilterOp = iota
-	FilterOpNotEquals
-	FilterOpLessThan
-	FilterOpLessThanEqual
-	FilterOpGreaterThan
-	FilterOpGreaterThanEqual
-	FilterOpILike
-	FilterOpNotILike
-)
-
-const (
-	FilterLogicAnd FilterLogic = iota
-	FilterLogicOr
 )
 
 type Field = string // Alias
 type FilterType int
 type FilterFieldTypes map[Field]FilterType
 
-type Sort []SortField
+type SortFields []string
 
-type SortField struct {
-	Field Field
-	Desc  bool
+type Sort []SortTerm
+
+type SortTerm struct {
+	Field Field `json:"field"`
+	Desc  bool  `json:"desc"`
 }
 
 type Options map[string]struct{} // Just a lookup of string
@@ -96,46 +79,25 @@ func (o Options) MarshalJSON() ([]byte, error) {
 	return json.Marshal(ret)
 }
 
-func (op FilterOp) MarshalJSON() ([]byte, error) {
-	switch op {
-	case FilterOpEquals:
-		return []byte(`"="`), nil
-	case FilterOpNotEquals:
-		return []byte(`"!="`), nil
-	case FilterOpLessThan:
-		return []byte(`"<"`), nil
-	case FilterOpLessThanEqual:
-		return []byte(`"<="`), nil
-	case FilterOpGreaterThan:
-		return []byte(`">"`), nil
-	case FilterOpGreaterThanEqual:
-		return []byte(`">="`), nil
-	case FilterOpILike:
-		return []byte(`"=~"`), nil
-	case FilterOpNotILike:
-		return []byte(`"!=~"`), nil
-	default:
-		return []byte(fmt.Sprintf(`"?!:%d"`, op)), nil
-	}
-}
-
-func (logic FilterLogic) MarshalJSON() ([]byte, error) {
-	switch logic {
-	case FilterLogicAnd:
-		return []byte(`"AND"`), nil
-	case FilterLogicOr:
-		return []byte(`"OR"`), nil
-	default:
-		return []byte(fmt.Sprintf(`"?!:%d"`, logic)), nil
-	}
-}
-
 func (qp *QueryParameters) String() string {
-	b, _ := json.Marshal(qp)
-	return string(b)
+	b := &bytes.Buffer{}
+	e := json.NewEncoder(b)
+	e.SetEscapeHTML(false)
+	if err := e.Encode(qp); err != nil {
+		panic(err)
+	}
+	return b.String()
 }
 
 func (qp *QueryParameters) PrettyString() string {
-	b, _ := json.MarshalIndent(qp, "", "  ")
-	return string(b)
+
+	b := &bytes.Buffer{}
+	e := json.NewEncoder(b)
+	e.SetEscapeHTML(false)
+	e.SetIndent("", "  ")
+	if err := e.Encode(qp); err != nil {
+		panic(err)
+	}
+	return b.String()
+
 }

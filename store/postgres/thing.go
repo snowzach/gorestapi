@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/snowzach/gorestapi/gorestapi"
+	"github.com/snowzach/gorestapi/queryp"
+	"github.com/snowzach/gorestapi/queryp/qppg"
 	"github.com/snowzach/gorestapi/store"
 )
 
@@ -47,7 +49,7 @@ func (c *Client) ThingSave(ctx context.Context, thing *gorestapi.Thing) error {
 		RETURNING *
 	) `+ThingSelect+ThingFrom, thing.ID, thing.Name, thing.Description)
 	if err != nil {
-		return err
+		return wrapError(err)
 	}
 	return nil
 
@@ -61,7 +63,7 @@ func (c *Client) ThingGetByID(ctx context.Context, id string) (*gorestapi.Thing,
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	} else if err != nil {
-		return nil, err
+		return nil, wrapError(err)
 	}
 	return thing, nil
 
@@ -72,59 +74,60 @@ func (c *Client) ThingDeleteByID(ctx context.Context, id string) error {
 
 	_, err := c.db.ExecContext(ctx, `DELETE FROM thing WHERE thing.id = $1`, id)
 	if err != nil {
-		return err
+		return wrapError(err)
 	}
 	return nil
 
 }
 
 // ThingsFind fetches a things with filter and pagination
-func (c *Client) ThingsFind(ctx context.Context, fqp *store.FindQueryParameters) ([]*gorestapi.Thing, int64, error) {
+func (c *Client) ThingsFind(ctx context.Context, qp *queryp.QueryParameters) ([]*gorestapi.Thing, int64, error) {
 
 	var queryClause strings.Builder
 	var queryParams = []interface{}{}
 
-	filterFields := store.FilterFieldTypes{
-		"thing.id":          store.FilterTypeEquals,
-		"thing.name":        store.FilterTypeILike,
-		"thing.description": store.FilterTypeILike,
+	filterFields := queryp.FilterFieldTypes{
+		"thing.id":          queryp.FilterTypeSimple,
+		"thing.name":        queryp.FilterTypeString,
+		"thing.description": queryp.FilterTypeString,
 	}
 
-	sortFields := store.SortFields{
+	sortFields := queryp.SortFields{
 		"thing.id",
 		"thing.created",
 		"thing.updated",
 		"thing.name",
 	}
 	// Default sort
-	if len(fqp.Sort) == 0 {
-		fqp.Sort = store.SortValues{&store.Sort{Field: "thing.id", Desc: false}}
+	if len(qp.Sort) == 0 {
+		qp.Sort = queryp.Sort{queryp.SortTerm{Field: "thing.id", Desc: false}}
 	}
 
-	if err := c.FilterQuery(filterFields, fqp.PreFilter, fqp.PreFilterInclusive, &queryClause, &queryParams); err != nil {
-		return nil, 0, err
+	if len(qp.Filter) > 0 {
+		queryClause.WriteString(" WHERE ")
 	}
-	if err := c.FilterQuery(filterFields, fqp.Filter, fqp.FilterInclusive, &queryClause, &queryParams); err != nil {
+
+	if err := qppg.FilterQuery(filterFields, qp.Filter, &queryClause, &queryParams); err != nil {
 		return nil, 0, err
 	}
 	var count int64
-	if err := c.db.GetContext(ctx, &count, `SELECT COUNT(*) AS count`+ThingFrom+` WHERE 1=1`+queryClause.String(), queryParams...); err != nil {
+	if err := c.db.GetContext(ctx, &count, `SELECT COUNT(*) AS count`+ThingFrom+queryClause.String(), queryParams...); err != nil {
+		return nil, 0, wrapError(err)
+	}
+	if err := qppg.SortQuery(sortFields, qp.Sort, &queryClause, &queryParams); err != nil {
 		return nil, 0, err
 	}
-	if err := c.SortQuery(sortFields, fqp.Sort, &queryClause, &queryParams); err != nil {
-		return nil, 0, err
+	if qp.Limit > 0 {
+		queryClause.WriteString(" LIMIT " + strconv.Itoa(qp.Limit))
 	}
-	if fqp.Limit > 0 {
-		queryClause.WriteString(" LIMIT " + strconv.Itoa(fqp.Limit))
-	}
-	if fqp.Offset > 0 {
-		queryClause.WriteString(" OFFSET " + strconv.Itoa(fqp.Offset))
+	if qp.Offset > 0 {
+		queryClause.WriteString(" OFFSET " + strconv.Itoa(qp.Offset))
 	}
 
 	var things = make([]*gorestapi.Thing, 0)
-	err := c.db.SelectContext(ctx, &things, ThingSelect+ThingFrom+` WHERE 1=1`+queryClause.String(), queryParams...)
+	err := c.db.SelectContext(ctx, &things, ThingSelect+ThingFrom+queryClause.String(), queryParams...)
 	if err != nil {
-		return things, 0, err
+		return things, 0, wrapError(err)
 	}
 
 	return things, count, nil

@@ -74,3 +74,10 @@ It also has the option to automatically generate a development cert every time i
 ## Relocation
 If you want to start with this as boilerplate for your project, you can clone this repo and use the `make relocate` option to rename the package.
 `make relocate TARGET=github.com/myname/mycoolproject`
+
+## TODO
+* Handle error wrapping - logging and not logging
+* Update documentation
+* Update tests
+* Write query logic readme
+* Test documentation
