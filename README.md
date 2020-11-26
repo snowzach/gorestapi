@@ -10,19 +10,9 @@ You can clone it anywhere, just run `make` inside the cloned directory to build
 This does require a postgres database to be setup and reachable. It will attempt to create and migrate the database upon starting.
 
 ## Configuration
-The configuration is designed to be specified with environment variables. The values 
-you can also specify environment variables that align with the config file values.
-
+The configuration is designed to be specified with environment variables in all caps with underscores instead of periods. 
+```
 Example:
-```json
-{
-	"logger": {
-        "level": "debug"
-	}
-}
-```
-Can be set via an environment variable:
-```
 LOGGER_LEVEL=debug
 ```
 
@@ -74,6 +64,41 @@ LOGGER_LEVEL=debug
 ## Data Storage
 Data is stored in a postgres database by default.
 
+## Query Logic
+Find requests `GET /api/things` and `GET /api/widgets` uses a url query parser to allow very complex logic including AND, OR and precedence operators. 
+
+For example: 
+```
+GET /api/things?field1=value1&(field2=value2|field3=value3)&limit=10&offset=10&sort=name,-description
+
+Get all things where field1=value1 AND ( field2=value2 OR field3=value3 ) sort by name ascending, description descending limit to 10 records and skip the first 10
+```
+
+### Supported Operators:
+	* &		- Logic AND (as well as splitting operators)
+	* |		- Logic OR
+
+	* =     - Exactly Equals
+	* !=    - Not Equals
+	* < 	- Less Than
+	* >		- Greater Than
+	* <=	- Less than or equals
+	* >=	- Greater than or equals
+	* =~	- Like (supports % wildcards)
+	* !=~   - Not Like (supports % wildcards)
+	* =~~   - Like case-insensitive (supports % wildcards)
+	* !=~~	- Not Like case-insensitive (supports % wildcards)
+	* :		- Regular Expression Match
+	* !:	- Not Regular Expression Match
+	* :~	- Regular Expression Match (case-insensitive
+	* !:~	- Not Regular Expression Match (case-insensitive
+
+	* ()	- Parenthesis can be use for precedence.
+
+## Swagger Documentation
+When you run the API it has built in Swagger documentation available at `/api/api-docs/` (trailing slash required)
+The documentation is automatically generated.
+
 ## TLS/HTTPS
 You can enable https by setting the config option server.tls = true and pointing it to your keyfile and certfile.
 To create a self-signed cert: `openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509 -keyout server.key -out server.crt`
@@ -82,8 +107,3 @@ It also has the option to automatically generate a development cert every time i
 ## Relocation
 If you want to start with this as boilerplate for your project, you can clone this repo and use the `make relocate` option to rename the package.
 `make relocate TARGET=github.com/myname/mycoolproject`
-
-## TODO
-* Update tests
-* Write query logic readme
-* Test documentation
