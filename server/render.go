@@ -16,7 +16,7 @@ func RenderJSON(w http.ResponseWriter, code int, v interface{}) {
 	b := new(bytes.Buffer)
 	if err := json.NewEncoder(b).Encode(v); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(b, `{"render_error":"%s"}`, err.Error())
+		fmt.Fprintf(b, `{"render_error":"%s"}`, errString(err))
 	} else {
 		w.WriteHeader(code)
 	}
@@ -46,13 +46,22 @@ func RenderErrUnauthorized(w http.ResponseWriter) {
 }
 
 func RenderErrInvalidRequest(w http.ResponseWriter, err error) {
-	RenderJSON(w, http.StatusBadRequest, ErrResponse{Status: "invalid request", Error: err.Error()})
+	RenderJSON(w, http.StatusBadRequest, ErrResponse{Status: "invalid request", Error: errString(err)})
 }
 
-func RenderErrInternal(w http.ResponseWriter, err error, errID string) {
-	RenderJSON(w, http.StatusInternalServerError, ErrResponse{Status: "internal error", Error: err.Error(), ErrorID: errID})
+func RenderErrInternal(w http.ResponseWriter, err error) {
+	RenderJSON(w, http.StatusInternalServerError, ErrResponse{Status: "internal error", Error: errString(err)})
 }
 
-func ErrorID() string {
-	return xid.New().String()
+func RenderErrInternalWithID(w http.ResponseWriter, err error) string {
+	errID := xid.New().String()
+	RenderJSON(w, http.StatusInternalServerError, ErrResponse{Status: "internal error", Error: errString(err), ErrorID: errID})
+	return errID
+}
+
+func errString(err error) string {
+	if err == nil {
+		return ""
+	}
+	return err.Error()
 }

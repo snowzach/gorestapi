@@ -1,7 +1,6 @@
 package mainrpc
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -52,13 +51,13 @@ func (s *Server) ThingSave() http.HandlerFunc {
 
 		err := s.grStore.ThingSave(ctx, thing)
 		if err != nil {
-			if ierr, ok := err.(*store.InternalError); ok {
-				errID := server.ErrorID()
-				s.logger.Errorf("ThingSave error(%s): %v", errID, ierr.Err)
-				server.RenderErrInternal(w, nil, errID)
+			if serr, ok := err.(*store.Error); ok {
+				server.RenderErrInvalidRequest(w, serr.ErrorForOp(store.ErrorOpSave))
 			} else {
-				server.RenderErrInvalidRequest(w, fmt.Errorf("could not save thing: %v", err))
+				errID := server.RenderErrInternalWithID(w, nil)
+				s.logger.Errorw("ThingSave error", "error", err, "error_id", errID)
 			}
+			return
 		}
 
 		render.JSON(w, r, thing)
@@ -97,17 +96,16 @@ func (s *Server) ThingGetByID() http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 
 		thing, err := s.grStore.ThingGetByID(ctx, id)
-		if err == store.ErrNotFound {
-			server.RenderErrNotFound(w)
-			return
-		} else if err != nil {
-			if ierr, ok := err.(*store.InternalError); ok {
-				errID := server.ErrorID()
-				s.logger.Errorf("ThingGetByID error(%s): %v", errID, ierr.Err)
-				server.RenderErrInternal(w, nil, errID)
+		if err != nil {
+			if err == store.ErrNotFound {
+				server.RenderErrResourceNotFound(w, "thing")
+			} else if serr, ok := err.(*store.Error); ok {
+				server.RenderErrInvalidRequest(w, serr.ErrorForOp(store.ErrorOpGet))
 			} else {
-				server.RenderErrInvalidRequest(w, fmt.Errorf("could not get thing: %v", err))
+				errID := server.RenderErrInternalWithID(w, nil)
+				s.logger.Errorw("ThingGetByID error", "error", err, "error_id", errID)
 			}
+			return
 		}
 
 		server.RenderJSON(w, http.StatusOK, thing)
@@ -143,17 +141,16 @@ func (s *Server) ThingDeleteByID() http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 
 		err := s.grStore.ThingDeleteByID(ctx, id)
-		if err == store.ErrNotFound {
-			server.RenderErrNotFound(w)
-			return
-		} else if err != nil {
-			if ierr, ok := err.(*store.InternalError); ok {
-				errID := server.ErrorID()
-				s.logger.Errorf("ThingDeleteByID error(%s): %v", errID, ierr.Err)
-				server.RenderErrInternal(w, nil, errID)
+		if err != nil {
+			if err == store.ErrNotFound {
+				server.RenderErrResourceNotFound(w, "thing")
+			} else if serr, ok := err.(*store.Error); ok {
+				server.RenderErrInvalidRequest(w, serr.ErrorForOp(store.ErrorOpDelete))
 			} else {
-				server.RenderErrInvalidRequest(w, fmt.Errorf("could not delete thing: %v", err))
+				errID := server.RenderErrInternalWithID(w, nil)
+				s.logger.Errorw("ThingDeleteByID error", "error", err, "error_id", errID)
 			}
+			return
 		}
 
 		server.RenderNoContent(w)
@@ -213,13 +210,13 @@ func (s *Server) ThingsFind() http.HandlerFunc {
 
 		things, count, err := s.grStore.ThingsFind(ctx, qp)
 		if err != nil {
-			if ierr, ok := err.(*store.InternalError); ok {
-				errID := server.ErrorID()
-				s.logger.Errorf("ThingsFind error(%s): %v", errID, ierr.Err)
-				server.RenderErrInternal(w, nil, errID)
+			if serr, ok := err.(*store.Error); ok {
+				server.RenderErrInvalidRequest(w, serr.ErrorForOp(store.ErrorOpFind))
 			} else {
-				server.RenderErrInvalidRequest(w, fmt.Errorf("could not find things: %v", err))
+				errID := server.RenderErrInternalWithID(w, nil)
+				s.logger.Errorw("ThingsFind error", "error", err, "error_id", errID)
 			}
+			return
 		}
 
 		server.RenderJSON(w, http.StatusOK, store.Results{Count: count, Results: things})

@@ -2,21 +2,54 @@ package store
 
 import (
 	"errors"
+	"fmt"
 )
 
 // ErrNotFound is a standard not found error
 var (
 	ErrNotFound = errors.New("not found")
-	ErrInteral  = &InternalError{Err: errors.New("internal error")}
 )
 
-type InternalError struct {
-	Err error
+type ErrorType int
+type ErrorOp int
+
+const (
+	ErrorTypeNone ErrorType = iota
+	ErrorTypeIncomplete
+	ErrorTypeForeignKey
+	ErrorTypeDuplicate
+	ErrorTypeInvalid
+
+	ErrorOpSave ErrorOp = iota
+	ErrorOpGet
+	ErrorOpDelete
+	ErrorOpFind
+)
+
+type Error struct {
+	Type ErrorType
+	Err  error
 }
 
-func (e *InternalError) Error() string { return e.Err.Error() }
+func (e *Error) Error() string { return e.Err.Error() }
 
-func (e *InternalError) Unwrap() error { return e.Err }
+func (e *Error) Unwrap() error { return e.Err }
+
+func (e *Error) ErrorForOp(op ErrorOp) error {
+	switch e.Type {
+	case ErrorTypeNone:
+		return nil
+	case ErrorTypeIncomplete:
+		return fmt.Errorf("missing data: %w", e.Err)
+	case ErrorTypeForeignKey:
+		return fmt.Errorf("foreign key: %w", e.Err)
+	case ErrorTypeDuplicate:
+		return fmt.Errorf("duplicate: %w", e.Err)
+	case ErrorTypeInvalid:
+		return fmt.Errorf("invalid data: %w", e.Err)
+	}
+	return e.Err
+}
 
 type Results struct {
 	Count   int64       `json:"count"`

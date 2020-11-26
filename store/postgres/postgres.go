@@ -10,7 +10,6 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	bindata "github.com/golang-migrate/migrate/v4/source/go_bindata"
-	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
@@ -19,7 +18,6 @@ import (
 
 	"github.com/snowzach/gorestapi/conf"
 	"github.com/snowzach/gorestapi/embed"
-	"github.com/snowzach/gorestapi/store"
 )
 
 // Client is the database client
@@ -222,29 +220,4 @@ func New() (*Client, error) {
 
 	return c, nil
 
-}
-
-func wrapError(err error) error {
-
-	switch e := err.(type) {
-	case *pgconn.PgError:
-		switch e.Code {
-		case "23502":
-			return fmt.Errorf("missing data: %s", e.Message)
-		case "23503":
-			// foreign key violation
-			return fmt.Errorf("foreign key error: %s", e.Detail)
-		case "23505":
-			// unique constraint violation
-			return fmt.Errorf("duplicate data: %s", e.Detail)
-		case "23514":
-			// check constraint violation
-			return fmt.Errorf("invalid data: %s", e.Message)
-		default:
-			return &store.InternalError{
-				Err: err,
-			}
-		}
-	}
-	return err
 }

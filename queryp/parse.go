@@ -43,9 +43,9 @@ func ParseQuery(q string) (*QueryParameters, error) {
 		return nil, ErrCouldNotParse
 	}
 
-	for i, match := range matches {
-		fmt.Printf("%d: %v\n", i, match)
-	}
+	// for i, match := range matches {
+	// 	fmt.Printf("%d: %v\n", i, match)
+	// }
 
 	// Recursive parse function
 	var parsedChars int
