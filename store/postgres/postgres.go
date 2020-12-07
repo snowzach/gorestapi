@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	bindata "github.com/golang-migrate/migrate/v4/source/go_bindata"
+	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
@@ -18,6 +20,7 @@ import (
 
 	"github.com/snowzach/gorestapi/conf"
 	"github.com/snowzach/gorestapi/embed"
+	"github.com/snowzach/gorestapi/store"
 )
 
 // Client is the database client
@@ -220,4 +223,33 @@ func New() (*Client, error) {
 
 	return c, nil
 
+}
+
+type queryLogger struct {
+	logger *zap.SugaredLogger
+}
+
+func (ql *queryLogger) Log(ctx context.Context, level pgx.LogLevel, msg string, data map[string]interface{}) {
+	ql.logger.Debugw(msg, "level", level, zap.Any("data", data))
+}
+
+// Lookup of postgres error codes to basic errors we can return to a user
+var pgErrorCodeToStoreErrorType = map[string]store.ErrorType{
+	"23502": store.ErrorTypeIncomplete,
+	"23503": store.ErrorTypeForeignKey,
+	"23505": store.ErrorTypeDuplicate,
+	"23514": store.ErrorTypeInvalid,
+}
+
+func wrapError(err error) error {
+	switch e := err.(type) {
+	case *pgconn.PgError:
+		if et, found := pgErrorCodeToStoreErrorType[e.Code]; found {
+			return &store.Error{
+				Type: et,
+				Err:  err,
+			}
+		}
+	}
+	return err
 }
