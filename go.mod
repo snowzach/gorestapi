@@ -22,9 +22,9 @@ require (
 	github.com/rs/xid v1.2.1
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/snowzach/certtools v1.0.2
-	github.com/spf13/cast v1.3.0
+	github.com/snowzach/queryp v0.2.0
 	github.com/spf13/cobra v1.1.1
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/valyala/fasthttp v1.17.0 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0 // indirect

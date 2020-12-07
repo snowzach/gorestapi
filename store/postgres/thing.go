@@ -6,9 +6,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/snowzach/queryp"
+	"github.com/snowzach/queryp/qppg"
+
 	"github.com/snowzach/gorestapi/gorestapi"
-	"github.com/snowzach/gorestapi/queryp"
-	"github.com/snowzach/gorestapi/queryp/qppg"
 	"github.com/snowzach/gorestapi/store"
 )
 

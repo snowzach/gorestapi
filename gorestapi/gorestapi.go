@@ -3,7 +3,7 @@ package gorestapi
 import (
 	"context"
 
-	"github.com/snowzach/gorestapi/queryp"
+	"github.com/snowzach/queryp"
 )
 
 // GRStore is the persistent store of things

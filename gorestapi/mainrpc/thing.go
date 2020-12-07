@@ -5,9 +5,9 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
+	"github.com/snowzach/queryp"
 
 	"github.com/snowzach/gorestapi/gorestapi"
-	"github.com/snowzach/gorestapi/queryp"
 	"github.com/snowzach/gorestapi/server"
 	"github.com/snowzach/gorestapi/store"
 )

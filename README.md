@@ -66,34 +66,7 @@ Data is stored in a postgres database by default.
 
 ## Query Logic
 Find requests `GET /api/things` and `GET /api/widgets` uses a url query parser to allow very complex logic including AND, OR and precedence operators. 
-
-For example: 
-```
-GET /api/things?field1=value1&(field2=value2|field3=value3)&limit=10&offset=10&sort=name,-description
-
-Get all things where field1=value1 AND ( field2=value2 OR field3=value3 ) sort by name ascending, description descending limit to 10 records and skip the first 10
-```
-
-### Supported Operators:
-	* &		- Logic AND (as well as splitting operators)
-	* |		- Logic OR
-
-	* =     - Exactly Equals
-	* !=    - Not Equals
-	* < 	- Less Than
-	* >		- Greater Than
-	* <=	- Less than or equals
-	* >=	- Greater than or equals
-	* =~	- Like (supports % wildcards)
-	* !=~   - Not Like (supports % wildcards)
-	* =~~   - Like case-insensitive (supports % wildcards)
-	* !=~~	- Not Like case-insensitive (supports % wildcards)
-	* :		- Regular Expression Match
-	* !:	- Not Regular Expression Match
-	* :~	- Regular Expression Match (case-insensitive
-	* !:~	- Not Regular Expression Match (case-insensitive
-
-	* ()	- Parenthesis can be use for precedence.
+For the documentation on how to use this format see https://github.com/snowzach/queryp
 
 ## Swagger Documentation
 When you run the API it has built in Swagger documentation available at `/api/api-docs/` (trailing slash required)
