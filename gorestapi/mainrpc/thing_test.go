@@ -34,7 +34,7 @@ func TestThingPost(t *testing.T) {
 	}
 
 	// Mock call to item store
-	grs.On("ThingSave", mock.AnythingOfType("*context.valueCtx"), i).Once().Return(nil)
+	grs.On("ThingSave", mock.Anything, i).Once().Return(nil)
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
@@ -70,7 +70,7 @@ func TestThingsFind(t *testing.T) {
 	}
 
 	// Mock call to item store
-	grs.On("ThingsFind", mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("*queryp.QueryParameters")).Once().Return(i, int64(2), nil)
+	grs.On("ThingsFind", mock.Anything, mock.AnythingOfType("*queryp.QueryParameters")).Once().Return(i, int64(2), nil)
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
@@ -100,7 +100,7 @@ func TestThingGetByID(t *testing.T) {
 	}
 
 	// Mock call to item store
-	grs.On("ThingGetByID", mock.AnythingOfType("*context.valueCtx"), "1234").Once().Return(i, nil)
+	grs.On("ThingGetByID", mock.Anything, "1234").Once().Return(i, nil)
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
@@ -124,7 +124,7 @@ func TestThingDeleteByID(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Mock call to item store
-	grs.On("ThingDeleteByID", mock.AnythingOfType("*context.valueCtx"), "1234").Once().Return(nil)
+	grs.On("ThingDeleteByID", mock.Anything, "1234").Once().Return(nil)
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)

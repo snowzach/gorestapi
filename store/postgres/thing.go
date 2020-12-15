@@ -119,10 +119,10 @@ func (c *Client) ThingsFind(ctx context.Context, qp *queryp.QueryParameters) ([]
 		return nil, 0, err
 	}
 	if qp.Limit > 0 {
-		queryClause.WriteString(" LIMIT " + strconv.Itoa(qp.Limit))
+		queryClause.WriteString(" LIMIT " + strconv.FormatInt(qp.Limit, 10))
 	}
 	if qp.Offset > 0 {
-		queryClause.WriteString(" OFFSET " + strconv.Itoa(qp.Offset))
+		queryClause.WriteString(" OFFSET " + strconv.FormatInt(qp.Offset, 10))
 	}
 
 	var things = make([]*gorestapi.Thing, 0)

@@ -34,7 +34,7 @@ func TestWidgetPost(t *testing.T) {
 	}
 
 	// Mock call to item store
-	grs.On("WidgetSave", mock.AnythingOfType("*context.valueCtx"), i).Once().Return(nil)
+	grs.On("WidgetSave", mock.Anything, i).Once().Return(nil)
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
@@ -70,7 +70,7 @@ func TestWidgetsFind(t *testing.T) {
 	}
 
 	// Mock call to item store
-	grs.On("WidgetsFind", mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("*queryp.QueryParameters")).Once().Return(i, int64(2), nil)
+	grs.On("WidgetsFind", mock.Anything, mock.AnythingOfType("*queryp.QueryParameters")).Once().Return(i, int64(2), nil)
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
@@ -100,7 +100,7 @@ func TestWidgetGetByID(t *testing.T) {
 	}
 
 	// Mock call to item store
-	grs.On("WidgetGetByID", mock.AnythingOfType("*context.valueCtx"), "1234").Once().Return(i, nil)
+	grs.On("WidgetGetByID", mock.Anything, "1234").Once().Return(i, nil)
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
@@ -124,7 +124,7 @@ func TestWidgetDeleteByID(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Mock call to item store
-	grs.On("WidgetDeleteByID", mock.AnythingOfType("*context.valueCtx"), "1234").Once().Return(nil)
+	grs.On("WidgetDeleteByID", mock.Anything, "1234").Once().Return(nil)
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)

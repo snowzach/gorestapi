@@ -8,21 +8,23 @@ require (
 	github.com/elazarl/go-bindata-assetfs v1.0.1
 	github.com/fasthttp-contrib/websocket v0.0.0-20160511215533-1f3b11f56072 // indirect
 	github.com/gavv/httpexpect v2.0.0+incompatible
-	github.com/go-chi/chi v1.5.0
+	github.com/go-chi/chi v1.5.1
 	github.com/go-chi/cors v1.1.1
 	github.com/go-chi/render v1.0.1
-	github.com/golang-migrate/migrate/v4 v4.13.0
+	github.com/golang-migrate/migrate/v4 v4.14.1
+	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/imkira/go-interpol v1.1.0 // indirect
-	github.com/jackc/pgconn v1.7.2
-	github.com/jackc/pgx/v4 v4.9.2
+	github.com/jackc/pgconn v1.8.0
+	github.com/jackc/pgx/v4 v4.10.0
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/knadh/koanf v0.14.0
+	github.com/lib/pq v1.9.0 // indirect
+	github.com/mitchellh/mapstructure v1.4.0 // indirect
 	github.com/moul/http2curl v1.0.0 // indirect
 	github.com/rs/xid v1.2.1
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/snowzach/certtools v1.0.2
-	github.com/snowzach/queryp v0.2.0
+	github.com/snowzach/queryp v0.2.4
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.6.1
 	github.com/valyala/fasthttp v1.17.0 // indirect
@@ -31,5 +33,8 @@ require (
 	github.com/yudai/gojsondiff v1.0.0 // indirect
 	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
 	github.com/yudai/pp v2.0.1+incompatible // indirect
+	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
+	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9 // indirect
+	golang.org/x/text v0.3.4 // indirect
 )
