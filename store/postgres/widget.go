@@ -105,10 +105,10 @@ func (c *Client) WidgetsFind(ctx context.Context, qp *queryp.QueryParameters) ([
 	}
 
 	sortFields := queryp.SortFields{
-		"widget.id",
-		"widget.created",
-		"widget.updated",
-		"widget.name",
+		"widget.id":      "",
+		"widget.created": "",
+		"widget.updated": "",
+		"widget.name":    "",
 	}
 	// Default sort
 	if len(qp.Sort) == 0 {

@@ -94,10 +94,10 @@ func (c *Client) ThingsFind(ctx context.Context, qp *queryp.QueryParameters) ([]
 	}
 
 	sortFields := queryp.SortFields{
-		"thing.id",
-		"thing.created",
-		"thing.updated",
-		"thing.name",
+		"thing.id":      "",
+		"thing.created": "",
+		"thing.updated": "",
+		"thing.name":    "",
 	}
 	// Default sort
 	if len(qp.Sort) == 0 {

@@ -24,7 +24,7 @@ require (
 	github.com/rs/xid v1.2.1
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/snowzach/certtools v1.0.2
-	github.com/snowzach/queryp v0.2.4
+	github.com/snowzach/queryp v0.2.5
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.6.1
 	github.com/valyala/fasthttp v1.17.0 // indirect
@@ -35,6 +35,6 @@ require (
 	github.com/yudai/pp v2.0.1+incompatible // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
-	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9 // indirect
+	golang.org/x/crypto v0.0.0-20201217014255-9d1352758620 // indirect
 	golang.org/x/text v0.3.4 // indirect
 )
