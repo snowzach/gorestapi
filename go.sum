@@ -456,8 +456,8 @@ github.com/snowflakedb/glog v0.0.0-20180824191149-f5055e6f21ce/go.mod h1:EB/w24p
 github.com/snowflakedb/gosnowflake v1.3.5/go.mod h1:13Ky+lxzIm3VqNDZJdyvu9MCGy+WgRdYFdXp96UcLZU=
 github.com/snowzach/certtools v1.0.2 h1:C1XzUZZeIsJjk10/CMSBYmFTUtFSgq+dowsMjJhmsPE=
 github.com/snowzach/certtools v1.0.2/go.mod h1:rZqO5JtBTNCAEu184f6KqG1x3Hfg1KX3kVtY93L6xhQ=
-github.com/snowzach/queryp v0.2.5 h1:Xbt2ErMNCEXgsdaH37lhplx/jDOmuR11t29326YkeRs=
-github.com/snowzach/queryp v0.2.5/go.mod h1:mRltofq7crGiIFvqLQraLLmBbG2JsCztbfQ2GhAM7rk=
+github.com/snowzach/queryp v0.2.6 h1:Vfdu/P/XO9Nla+4oAXD4X1393c2u9DJO88Eg9lNA0/E=
+github.com/snowzach/queryp v0.2.6/go.mod h1:QCSTgQZ6VCEWv226gfo20NedrMJiuC2QazVghdmanto=
 github.com/soheilhy/cmux v0.1.4/go.mod h1:IM3LyeVVIOuxMH7sFAkER9+bJ4dT7Ms6E4xg4kGIyLM=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/spf13/afero v1.1.2/go.mod h1:j4pytiNVoe2o6bmDsKpLACNPDBIoEAkihy7loJ1B0CQ=

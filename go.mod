@@ -19,7 +19,7 @@ require (
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/rs/xid v1.2.1
 	github.com/snowzach/certtools v1.0.2
-	github.com/snowzach/queryp v0.2.5
+	github.com/snowzach/queryp v0.2.6
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.6.1
 	go.uber.org/multierr v1.6.0 // indirect
