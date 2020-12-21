@@ -9,7 +9,6 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
-	"github.com/go-chi/render"
 	"github.com/snowzach/certtools"
 	"github.com/snowzach/certtools/autocert"
 	"go.uber.org/zap"
@@ -29,7 +28,6 @@ func New() (*Server, error) {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Recoverer)
-	r.Use(render.SetContentType(render.ContentTypeJSON))
 
 	// Log Requests - Use appropriate format depending on the encoding
 	if conf.C.Bool("server.log_requests") {

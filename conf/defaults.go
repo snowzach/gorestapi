@@ -1,21 +1,26 @@
 package conf
 
 import (
+	"fmt"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/parsers/toml"
+	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/providers/env"
+	"github.com/knadh/koanf/providers/file"
 )
 
 // C is the global configuration with "." for delimeter
 var C = koanf.New(".")
 
-func init() {
-
-	// Set Defaults
-	_ = C.Load(confmap.Provider(map[string]interface{}{
+// Defaults loads the default config for the app
+func Defaults(c *koanf.Koanf) error {
+	return c.Load(confmap.Provider(map[string]interface{}{
 		// Logger Defaults
 		"logger.level":              "info",
 		"logger.encoding":           "console",
@@ -64,7 +69,24 @@ func init() {
 		"database.wipe_confirm":          false,
 		"database.log_queries":           false,
 	}, "."), nil)
+}
 
+// File loads configuration from a file
+func File(c *koanf.Koanf, configFile string) error {
+	ext := filepath.Ext(configFile)
+	switch ext {
+	case ".yaml", ".yml":
+		return c.Load(file.Provider(configFile), yaml.Parser())
+	case ".json":
+		return c.Load(file.Provider(configFile), json.Parser())
+	case ".toml":
+		return c.Load(file.Provider(configFile), toml.Parser())
+	}
+	return fmt.Errorf("unknown config extension %s", ext)
+}
+
+// Env environment configuration overrides
+func Env(c *koanf.Koanf) error {
 	// All underscores in environment variables to dots
 	envReplacer := strings.NewReplacer("_", ".")
 	// Build a map of existing config items with all underscores replaced with dots so `thing.that_value` can
@@ -74,7 +96,7 @@ func init() {
 		envLookup[envReplacer.Replace(key)] = key
 	}
 	// Load the environment variables, compare to our lookup of existing values and set override value
-	_ = C.Load(env.ProviderWithValue("", ".", func(key string, value string) (string, interface{}) {
+	return c.Load(env.ProviderWithValue("", ".", func(key string, value string) (string, interface{}) {
 		// Convert environemnt variable to lower case and change underscore to dot
 		key = envReplacer.Replace(strings.ToLower(key))
 		if replacement, found := envLookup[key]; found {
@@ -87,5 +109,4 @@ func init() {
 		}
 		return "", nil // No existing variable, skip it
 	}), nil)
-
 }

@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/rs/xid"
@@ -64,4 +66,9 @@ func errString(err error) string {
 		return ""
 	}
 	return err.Error()
+}
+
+func DecodeJSON(r io.Reader, v interface{}) error {
+	defer io.Copy(ioutil.Discard, r)
+	return json.NewDecoder(r).Decode(v)
 }

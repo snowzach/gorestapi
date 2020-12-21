@@ -2,24 +2,26 @@ package conf
 
 import (
 	"github.com/blendle/zapdriver"
+	"github.com/knadh/koanf"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-func InitLogger() {
+// InitLogger loads a global logger based on a koanf configuration
+func InitLogger(c *koanf.Koanf) {
 
 	logConfig := zap.NewProductionConfig()
 	logConfig.Sampling = nil
 
 	// Log Level
 	var logLevel zapcore.Level
-	if err := logLevel.Set(C.String("logger.level")); err != nil {
+	if err := logLevel.Set(c.String("logger.level")); err != nil {
 		zap.S().Fatalw("Could not determine logger.level", "error", err)
 	}
 	logConfig.Level.SetLevel(logLevel)
 
 	// Handle different logger encodings
-	loggerEncoding := C.String("logger.encoding")
+	loggerEncoding := c.String("logger.encoding")
 	switch loggerEncoding {
 	case "stackdriver":
 		logConfig.Encoding = "json"
@@ -27,10 +29,10 @@ func InitLogger() {
 	default:
 		logConfig.Encoding = loggerEncoding
 		// Enable Color
-		if C.Bool("logger.color") {
+		if c.Bool("logger.color") {
 			logConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		}
-		logConfig.DisableStacktrace = C.Bool("logger.disable_stacktrace")
+		logConfig.DisableStacktrace = c.Bool("logger.disable_stacktrace")
 		// Use sane timestamp when logging to console
 		if logConfig.Encoding == "console" {
 			logConfig.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
@@ -43,8 +45,8 @@ func InitLogger() {
 	}
 
 	// Settings
-	logConfig.Development = C.Bool("logger.dev_mode")
-	logConfig.DisableCaller = C.Bool("logger.disable_caller")
+	logConfig.Development = c.Bool("logger.dev_mode")
+	logConfig.DisableCaller = c.Bool("logger.disable_caller")
 
 	// Build the logger
 	globalLogger, _ := logConfig.Build()

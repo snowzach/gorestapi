@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/go-chi/render"
 	"github.com/snowzach/queryp"
 
 	"github.com/snowzach/gorestapi/gorestapi"
@@ -44,7 +43,7 @@ func (s *Server) ThingSave() http.HandlerFunc {
 		ctx := r.Context()
 
 		var thing = new(gorestapi.Thing)
-		if err := render.DecodeJSON(r.Body, thing); err != nil {
+		if err := server.DecodeJSON(r.Body, thing); err != nil {
 			server.RenderErrInvalidRequest(w, err)
 			return
 		}
@@ -60,7 +59,7 @@ func (s *Server) ThingSave() http.HandlerFunc {
 			return
 		}
 
-		render.JSON(w, r, thing)
+		server.RenderJSON(w, http.StatusOK, thing)
 	}
 
 }

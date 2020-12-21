@@ -1,9 +1,8 @@
 package conf
 
 import (
+	"encoding/json"
 	"net/http"
-
-	"github.com/go-chi/render"
 )
 
 var (
@@ -13,16 +12,16 @@ var (
 	GitVersion = "NoGitVersion"
 )
 
-// GetVersion returns version
+// GetVersion returns version as a simple json
 func GetVersion() http.HandlerFunc {
-
-	// Simple version struct
-	type version struct {
-		Version string `json:"version"`
-	}
-	var v = &version{Version: GitVersion}
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		render.JSON(w, r, v)
+		v := struct {
+			Version string `json:"version"`
+		}{
+			Version: GitVersion,
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(v)
+		w.WriteHeader(http.StatusOK)
 	}
 }

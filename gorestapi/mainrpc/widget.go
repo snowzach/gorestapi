@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/go-chi/render"
 	"github.com/snowzach/queryp"
 
 	"github.com/snowzach/gorestapi/gorestapi"
@@ -44,7 +43,7 @@ func (s *Server) WidgetSave() http.HandlerFunc {
 		ctx := r.Context()
 
 		var widget = new(gorestapi.Widget)
-		if err := render.DecodeJSON(r.Body, widget); err != nil {
+		if err := server.DecodeJSON(r.Body, widget); err != nil {
 			server.RenderErrInvalidRequest(w, err)
 			return
 		}
@@ -60,7 +59,7 @@ func (s *Server) WidgetSave() http.HandlerFunc {
 			return
 		}
 
-		render.JSON(w, r, widget)
+		server.RenderJSON(w, http.StatusOK, widget)
 	}
 
 }

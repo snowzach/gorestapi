@@ -17,9 +17,8 @@ import (
 var (
 
 	// Config and global logger
-	configFile string
-	pidFile    string
-	logger     *zap.SugaredLogger
+	pidFile string
+	logger  *zap.SugaredLogger
 
 	// The Root Cli Handler
 	rootCmd = &cli.Command{
@@ -53,7 +52,15 @@ var (
 // Execute starts the program
 func Execute() {
 
-	conf.InitLogger()
+	// Load configuration
+	_ = conf.Defaults(conf.C)
+	if configFile := rootCmd.PersistentFlags().StringP("config", "c", "", "config file"); configFile != nil && *configFile != "" {
+		_ = conf.File(conf.C, *configFile)
+	}
+	_ = conf.Env(conf.C)
+
+	conf.InitLogger(conf.C)
+
 	logger = zap.S().With("package", "cmd")
 
 	if conf.C.Bool("profiler.enabled") {
@@ -63,7 +70,7 @@ func Execute() {
 				logger.Errorf("profiler server error: %v", err)
 			}
 		}()
-		logger.Infof("Profiler enabled on http://%s", hostPort)
+		logger.Infof("profiler enabled on http://%s", hostPort)
 	}
 
 	// Run the program
