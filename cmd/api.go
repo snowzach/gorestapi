@@ -32,7 +32,7 @@ var (
 			}
 
 			// Create the server
-			s, err := server.New()
+			s, err := server.New(conf.C)
 			if err != nil {
 				logger.Fatalw("Could not create server", "error", err)
 			}
@@ -50,7 +50,7 @@ var (
 				http.StripPrefix("/api", docsFileServer).ServeHTTP(w, r)
 			}))
 
-			err = s.ListenAndServe()
+			err = s.ListenAndServe(conf.C)
 			if err != nil {
 				logger.Fatalw("Could not start server",
 					"error", err,
