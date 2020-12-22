@@ -19,6 +19,7 @@ const (
 	ErrorTypeForeignKey
 	ErrorTypeDuplicate
 	ErrorTypeInvalid
+	ErrorTypeQuery
 
 	ErrorOpSave ErrorOp = iota
 	ErrorOpGet

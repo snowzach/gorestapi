@@ -109,14 +109,14 @@ func (c *Client) ThingsFind(ctx context.Context, qp *queryp.QueryParameters) ([]
 	}
 
 	if err := qppg.FilterQuery(filterFields, qp.Filter, &queryClause, &queryParams); err != nil {
-		return nil, 0, err
+		return nil, 0, &store.Error{Type: store.ErrorTypeQuery, Err: err}
 	}
 	var count int64
 	if err := c.db.GetContext(ctx, &count, `SELECT COUNT(*) AS count`+ThingFrom+queryClause.String(), queryParams...); err != nil {
 		return nil, 0, wrapError(err)
 	}
 	if err := qppg.SortQuery(sortFields, qp.Sort, &queryClause, &queryParams); err != nil {
-		return nil, 0, err
+		return nil, 0, &store.Error{Type: store.ErrorTypeQuery, Err: err}
 	}
 	if qp.Limit > 0 {
 		queryClause.WriteString(" LIMIT " + strconv.FormatInt(qp.Limit, 10))
