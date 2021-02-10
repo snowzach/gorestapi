@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -38,116 +39,137 @@ func New() (*Client, error) {
 
 	var err error
 
-	var dbCreds string       // Regular credentials
-	var dbCreateCreds string // Optional admin credentials to create database
-	var dbURL string         // Postgres connect url for db migration tool
-	var dbURLOptions string  // OPtions for connection
-
-	// Username
+	// Credentials
+	var dbCreds string
 	if username := conf.C.String("database.username"); username != "" {
-		dbCreds = username + ":" + conf.C.String("database.password")
-	} else {
-		return nil, fmt.Errorf("No username specified")
+		dbCreds += fmt.Sprintf("user=%s ", username)
 	}
-
-	// Check to see if we have an admin password specified (that we will use to create the database if it does not exist)
-	pgPassword := conf.C.String("POSTGRES_PASSWORD")
-	if pgPassword != "" {
-		pgUser := conf.C.String("POSTGRES_USER")
-		if pgUser == "" {
-			pgUser = "postgres"
-		}
-		dbCreateCreds = fmt.Sprintf("%s:%s", pgUser, pgPassword)
-	} else {
-		dbCreateCreds = dbCreds
+	if password := conf.C.String("database.password"); password != "" {
+		dbCreds += fmt.Sprintf("password=%s ", password)
 	}
 
 	// Host + Port
+	var connStr strings.Builder // Regular credentials
 	if hostname := conf.C.String("database.host"); hostname != "" {
-		dbURL += "@" + hostname
+		connStr.WriteString(fmt.Sprintf("host=%s ", hostname))
 	} else {
 		return nil, fmt.Errorf("No hostname specified")
 	}
 	if port := conf.C.String("database.port"); port != "" {
-		dbURL += ":" + port
+		connStr.WriteString(fmt.Sprintf("port=%s ", port))
+	}
+
+	// SSL Mode
+	connStr.WriteString(fmt.Sprintf("sslmode=%s ", conf.C.String("database.sslmode")))
+	if sslCert := conf.C.String("database.sslcert"); sslCert != "" {
+		connStr.WriteString(fmt.Sprintf("sslcert=%s ", sslCert))
+	}
+	if sslKey := conf.C.String("database.sslkey"); sslKey != "" {
+		connStr.WriteString(fmt.Sprintf("sslkey=%s ", sslKey))
+	}
+	if sslRootCert := conf.C.String("database.sslrootcert"); sslRootCert != "" {
+		connStr.WriteString(fmt.Sprintf("sslrootcert=%s ", sslRootCert))
+	}
+
+	// Search Path
+	if searchPath := conf.C.String("database.search_path"); searchPath != "" {
+		connStr.WriteString(fmt.Sprintf("search_path='%s' " + searchPath))
 	}
 
 	// Database Name
 	dbName := conf.C.String("database.database")
-	if dbName == "" {
-		return nil, fmt.Errorf("No database specified")
-	}
 
-	// SSL Mode
-	if sslMode := conf.C.String("database.sslmode"); sslMode != "" {
-		// dbConnection += fmt.Sprintf("sslmode=%s ", sslMode)
-		dbURLOptions += fmt.Sprintf("?sslmode=%s", sslMode)
-	}
+	var db *sqlx.DB
 
-	for retries := conf.C.Int("database.retries"); retries > 0 && !conf.Stop.Bool(); retries-- {
-		createDb, err := sql.Open("postgres", "postgres://"+dbCreateCreds+dbURL+dbURLOptions)
-		// Attempt to create the database if it doesn't exist
-		if err == nil {
-			defer createDb.Close()
-			// See if it exists
-			var one sql.NullInt64
-			err = createDb.QueryRow(`SELECT 1 from pg_database WHERE datname=$1`, dbName).Scan(&one)
-			if err == nil {
-				break // already exists
-			} else if err != sql.ErrNoRows && !strings.Contains(err.Error(), "does not exist") {
-				// Some other error besides does not exist
-				return nil, fmt.Errorf("Could not check for database: %s", err)
+	// Auto-create the database if requested/needed/possible
+	if conf.C.Bool("database.auto_create") {
+
+		// Check to see if we have an admin password specified (that we will use to create the database if it does not exist)
+		var dbCreateCreds string
+		if pgPassword := os.Getenv("POSTGRES_PASSWORD"); pgPassword != "" {
+			pgUser := os.Getenv("POSTGRES_USER")
+			if pgUser == "" {
+				pgUser = "postgres"
 			}
-		} else if strings.Contains(err.Error(), "permission denied") {
-			return nil, fmt.Errorf("Could not connect to database: %s", err)
-		} else if strings.Contains(err.Error(), "connection refused") {
-			logger.Warnw("Connection to database timed out. Sleeping and retry.",
-				"database.host", conf.C.String("database.host"),
-				"database.username", conf.C.String("database.username"),
-				"database.password", "****",
-				"database.port", conf.C.Int("database.port"),
-			)
-			time.Sleep(conf.C.Duration("database.sleep_between_retries"))
-			continue
+			dbCreateCreds = fmt.Sprintf("user=%s password=%s ", pgUser, pgPassword)
+		} else {
+			dbCreateCreds = dbCreds // otherwise use the default credentials
 		}
-		logger.Infow("Creating database", "database", dbName)
-		_, err = createDb.Exec(`CREATE DATABASE ` + dbName)
+
+		// Connect using create credentials
+		createConnConfig, err := pgx.ParseConfig(dbCreateCreds + connStr.String())
 		if err != nil {
-			return nil, fmt.Errorf("Could not create database: %s", err)
+			return nil, fmt.Errorf("could not parse pgx create config: %s", err)
 		}
-		break
+
+		for retries := conf.C.Int("database.retries"); retries > 0; retries-- {
+			// Attempt connecting to the database
+			db, err = sqlx.Connect("pgx", stdlib.RegisterConnConfig(createConnConfig))
+			if err == nil {
+				// Ping the database
+				if err = db.Ping(); err != nil {
+					return nil, fmt.Errorf("could not ping database %s", err)
+				}
+				break // connected
+
+			} else if strings.Contains(err.Error(), "connection refused") {
+				logger.Warn("failed to connect to database, sleeping and retry")
+				time.Sleep(conf.C.Duration("database.sleep_between_retries"))
+				continue
+			}
+
+			// Some other error
+			return nil, err
+		}
+
+		logger.Infow("Checking for database", "database", dbName)
+		var one int
+		if err := db.Get(&one, `SELECT 1 from pg_database WHERE datname=$1`, dbName); err == sql.ErrNoRows {
+
+			logger.Infow("Creating database", "database", dbName)
+			_, err = db.Exec(`CREATE DATABASE ` + dbName)
+			if err != nil {
+				return nil, fmt.Errorf("Could not create database: %s", err)
+			}
+
+		} else if err != nil {
+			// Some other error besides does not exist
+			return nil, fmt.Errorf("Could not check for database: %s", err)
+		}
+
+		_ = db.Close()
+		db = nil
+
 	}
 
-	// Build the full DB URL
-	fullDbURL := "postgres://" + dbCreds + dbURL + "/" + dbName + dbURLOptions
-
-	// If we caught the stop flag while sleeping
-	if conf.Stop.Bool() {
-		return nil, fmt.Errorf("Database connection aborted")
-	}
-
-	// Still not connected?
+	// Connect to database
+	connStr.WriteString(fmt.Sprintf("dbname=%s ", dbName))
+	connConfig, err := pgx.ParseConfig(dbCreds + connStr.String())
 	if err != nil {
-		return nil, fmt.Errorf("Could not connect to database: %s", err)
-	}
-
-	connConfig, err := pgx.ParseConfig(fullDbURL)
-	if err != nil {
-		return nil, fmt.Errorf("Could not parse pgx config: %s", err)
+		return nil, fmt.Errorf("could not parse pgx config: %s", err)
 	}
 	if conf.C.Bool("database.log_queries") {
 		connConfig.Logger = &queryLogger{logger: logger}
 	}
 
-	// Make the connection using the sqlx connector now that we know the database exists
-	db, err := sqlx.Connect("pgx", stdlib.RegisterConnConfig(connConfig))
-	if err != nil {
-		return nil, fmt.Errorf("Could not connect to database: %s", err)
-	}
+	for retries := conf.C.Int("database.retries"); retries > 0; retries-- {
 
-	// Ping the database
-	if err = db.Ping(); err != nil {
-		return nil, fmt.Errorf("Could not ping database %s", err)
+		// Attempt connecting to the database
+		db, err = sqlx.Connect("pgx", stdlib.RegisterConnConfig(connConfig))
+		if err == nil {
+			// Ping the database
+			if err = db.Ping(); err != nil {
+				return nil, fmt.Errorf("could not ping database %s", err)
+			}
+			break // connected
+		} else if strings.Contains(err.Error(), "connection refused") {
+			logger.Warn("failed to connect to database, sleeping and retry")
+			time.Sleep(conf.C.Duration("database.sleep_between_retries"))
+			continue
+		}
+
+		// Some other error
+		return nil, err
 	}
 
 	db.SetMaxOpenConns(conf.C.Int("database.max_connections"))

@@ -62,12 +62,17 @@ func Defaults(c *koanf.Koanf) error {
 		"database.host":                  "postgres",
 		"database.port":                  5432,
 		"database.database":              "gorestapi",
+		"database.auto_create":           true,
+		"database.search_path":           "",
 		"database.sslmode":               "disable",
+		"database.sslcert":               "",
+		"database.sslkey":                "",
+		"database.sslrootcert":           "",
 		"database.retries":               5,
 		"database.sleep_between_retries": "7s",
 		"database.max_connections":       40,
-		"database.wipe_confirm":          false,
 		"database.log_queries":           false,
+		"database.wipe_confirm":          false,
 	}, "."), nil)
 }
 
