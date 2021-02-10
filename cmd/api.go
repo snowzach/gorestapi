@@ -25,8 +25,13 @@ var (
 		Long:  `Start API`,
 		Run: func(cmd *cli.Command, args []string) { // Initialize the databse
 
+			migrationSource, err := embed.MigrationSource()
+			if err != nil {
+				logger.Fatalw("Could not get database migrations", "error", err)
+			}
+
 			// Database
-			pg, err := postgres.New()
+			pg, err := postgres.New(conf.C, migrationSource)
 			if err != nil {
 				logger.Fatalw("Database error", "error", err)
 			}
