@@ -71,7 +71,7 @@ func New(cfg *koanf.Koanf, migrationSource source.Driver) (*Client, error) {
 
 	// Search Path
 	if searchPath := cfg.String("database.search_path"); searchPath != "" {
-		connStr.WriteString(fmt.Sprintf("search_path='%s' " + searchPath))
+		connStr.WriteString(fmt.Sprintf("search_path=%q ", searchPath))
 	}
 
 	// Database Name
