@@ -119,6 +119,9 @@ func New(cfg *koanf.Koanf, migrationSource source.Driver) (*Client, error) {
 			// Some other error
 			return nil, err
 		}
+		if err != nil {
+			return nil, fmt.Errorf("retries exausted, last error: %v", err)
+		}
 
 		logger.Infow("Checking for database", "database", dbName)
 		var one int
@@ -168,6 +171,9 @@ func New(cfg *koanf.Koanf, migrationSource source.Driver) (*Client, error) {
 
 		// Some other error
 		return nil, err
+	}
+	if err != nil {
+		return nil, fmt.Errorf("retries exausted, last error: %v", err)
 	}
 
 	db.SetMaxOpenConns(cfg.Int("database.max_connections"))
