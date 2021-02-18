@@ -3,7 +3,6 @@ package cmd
 import (
 	"net/http"
 
-	assetfs "github.com/elazarl/go-bindata-assetfs"
 	cli "github.com/spf13/cobra"
 	"go.uber.org/zap"
 
@@ -48,18 +47,15 @@ var (
 			}
 
 			// Serve api-docs and swagger-ui
-			docsFileServer := http.FileServer(&assetfs.AssetFS{Asset: embed.Asset, AssetDir: embed.AssetDir, AssetInfo: embed.AssetInfo, Prefix: "public"})
-			s.Router().Get("/api/api-docs/*", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			docsFileServer := http.FileServer(http.FS(embed.PublicHTMLFS()))
+			s.Router().Mount("/api-docs", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Vary", "Accept-Encoding")
 				w.Header().Set("Cache-Control", "no-cache")
-				http.StripPrefix("/api", docsFileServer).ServeHTTP(w, r)
+				docsFileServer.ServeHTTP(w, r)
 			}))
 
-			err = s.ListenAndServe(conf.C)
-			if err != nil {
-				logger.Fatalw("Could not start server",
-					"error", err,
-				)
+			if err = s.ListenAndServe(conf.C); err != nil {
+				logger.Fatalw("Could not start server", "error", err)
 			}
 
 			conf.Stop.InitInterrupt()

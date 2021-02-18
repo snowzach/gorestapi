@@ -2,9 +2,7 @@ EXECUTABLE := gorestapicmd
 GITVERSION := $(shell git describe --dirty --always --tags --long)
 GOPATH ?= ${HOME}/go
 PACKAGENAME := $(shell go list -m -f '{{.Path}}')
-EMBEDDIR := embed
-TOOLS := ${GOPATH}/bin/go-bindata \
-	${GOPATH}/bin/mockery \
+TOOLS := ${GOPATH}/bin/mockery \
 	${GOPATH}/bin/swagger
 SWAGGERSOURCE = $(wildcard gorestapi/*.go) \
 	$(wildcard gorestapi/thingrpc/*.go)
@@ -14,19 +12,12 @@ default: ${EXECUTABLE}
 
 tools: ${TOOLS}
 
-${GOPATH}/bin/go-bindata:
-	GO111MODULE=off go get -u github.com/go-bindata/go-bindata/go-bindata
-
 ${GOPATH}/bin/mockery:
 	go get github.com/vektra/mockery/cmd/mockery 
 
 ${GOPATH}/bin/swagger:
 	wget -O ${GOPATH}/bin/swagger https://github.com/go-swagger/go-swagger/releases/download/v0.25.0/swagger_linux_amd64
 	chmod 755 ${GOPATH}/bin/swagger
-
-${EMBEDDIR}/bindata.go: tools $(wildcard embed/postgres_migrations/*.sql) $(wildcard embed/public/api-docs/*)
-	# Building bindata
-	go-bindata -o ${EMBEDDIR}/bindata.go -prefix ${EMBEDDIR} -pkg embed ${EMBED} embed/postgres_migrations/... embed/public/...
 
 .PHONY: swagger
 swagger: tools ${SWAGGERSOURCE}
@@ -40,12 +31,12 @@ mocks: tools
 	mockery -dir ./gorestapi -name GRStore
 
 .PHONY: ${EXECUTABLE}
-${EXECUTABLE}: tools ${EMBEDDIR}/bindata.go
+${EXECUTABLE}: tools
 	# Compiling...
 	go build -ldflags "-X ${PACKAGENAME}/conf.Executable=${EXECUTABLE} -X ${PACKAGENAME}/conf.GitVersion=${GITVERSION}" -o ${EXECUTABLE}
 
 .PHONY: test
-test: tools ${EMBEDDIR}/bindata.go mocks
+test: tools mocks
 	go test -cover ./...
 
 .PHONY: deps

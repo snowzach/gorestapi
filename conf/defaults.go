@@ -56,7 +56,6 @@ func Defaults(c *koanf.Koanf) error {
 		"server.cors.max_age":             300,
 
 		// Database Settings
-		"database.type":                  "postgres",
 		"database.username":              "postgres",
 		"database.password":              "password",
 		"database.host":                  "postgres",
