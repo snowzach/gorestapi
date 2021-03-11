@@ -41,6 +41,8 @@ var (
 				logger.Fatalw("Could not create server", "error", err)
 			}
 
+			s.Router().Get("/version", conf.GetVersion())
+
 			// ThingRPC
 			if err = mainrpc.Setup(s.Router(), pg); err != nil {
 				logger.Fatalw("Could not setup thingrpc", "error", err)

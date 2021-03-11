@@ -21,7 +21,7 @@ func GetVersion() http.HandlerFunc {
 			Version: GitVersion,
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(v)
 		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(v)
 	}
 }

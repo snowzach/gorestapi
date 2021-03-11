@@ -102,6 +102,7 @@ func (c *Client) WidgetsFind(ctx context.Context, qp *queryp.QueryParameters) ([
 		"widget.id":          queryp.FilterTypeSimple,
 		"widget.name":        queryp.FilterTypeString,
 		"widget.description": queryp.FilterTypeString,
+		"widget.thing_id":    queryp.FilterTypeSimple,
 	}
 
 	sortFields := queryp.SortFields{
@@ -112,7 +113,7 @@ func (c *Client) WidgetsFind(ctx context.Context, qp *queryp.QueryParameters) ([
 	}
 	// Default sort
 	if len(qp.Sort) == 0 {
-		qp.Sort = queryp.Sort{queryp.SortTerm{Field: "widget.id", Desc: false}}
+		qp.Sort.Append("widget.id", false)
 	}
 
 	if len(qp.Filter) > 0 {

@@ -101,7 +101,7 @@ func (c *Client) ThingsFind(ctx context.Context, qp *queryp.QueryParameters) ([]
 	}
 	// Default sort
 	if len(qp.Sort) == 0 {
-		qp.Sort = queryp.Sort{queryp.SortTerm{Field: "thing.id", Desc: false}}
+		qp.Sort.Append("thing.id", false)
 	}
 
 	if len(qp.Filter) > 0 {
