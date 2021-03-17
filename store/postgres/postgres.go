@@ -220,7 +220,7 @@ func New(cfg *koanf.Koanf, migrationSource source.Driver) (*Client, error) {
 		// Perform the migration up
 		err = migrateInstance.Up()
 		if err == migrate.ErrNoChange {
-			logger.Info("Database schmea current")
+			logger.Info("Database schema current")
 		} else if err != nil {
 			return nil, fmt.Errorf("migrate up error: %w", err)
 		} else {
