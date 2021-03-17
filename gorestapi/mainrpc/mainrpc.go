@@ -23,15 +23,17 @@ func Setup(router chi.Router, grStore gorestapi.GRStore) error {
 	}
 
 	// Base Functions
-	s.router.Post("/things", s.ThingSave())
-	s.router.Get("/things/{id}", s.ThingGetByID())
-	s.router.Delete("/things/{id}", s.ThingDeleteByID())
-	s.router.Get("/things", s.ThingsFind())
+	s.router.Route("/api", func(r chi.Router) {
+		r.Post("/things", s.ThingSave())
+		r.Get("/things/{id}", s.ThingGetByID())
+		r.Delete("/things/{id}", s.ThingDeleteByID())
+		r.Get("/things", s.ThingsFind())
 
-	s.router.Post("/widgets", s.WidgetSave())
-	s.router.Get("/widgets/{id}", s.WidgetGetByID())
-	s.router.Delete("/widgets/{id}", s.WidgetDeleteByID())
-	s.router.Get("/widgets", s.WidgetsFind())
+		r.Post("/widgets", s.WidgetSave())
+		r.Get("/widgets/{id}", s.WidgetGetByID())
+		r.Delete("/widgets/{id}", s.WidgetDeleteByID())
+		r.Get("/widgets", s.WidgetsFind())
+	})
 
 	return nil
 
