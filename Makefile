@@ -31,7 +31,7 @@ mocks: tools
 	mockery -dir ./gorestapi -name GRStore
 
 .PHONY: ${EXECUTABLE}
-${EXECUTABLE}: tools embed/public/api-docs/swagger.json
+${EXECUTABLE}: tools embed/public_html/api-docs/swagger.json
 	# Compiling...
 	go build -ldflags "-X ${PACKAGENAME}/conf.Executable=${EXECUTABLE} -X ${PACKAGENAME}/conf.GitVersion=${GITVERSION}" -o ${EXECUTABLE}
 
