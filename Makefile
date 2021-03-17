@@ -21,10 +21,10 @@ ${GOPATH}/bin/swagger:
 
 .PHONY: swagger
 swagger: tools ${SWAGGERSOURCE}
-	swagger generate spec --scan-models -o embed/public/api-docs/swagger.json
+	swagger generate spec --scan-models -o embed/public_html/api-docs/swagger.json
 
-embed/public/api-docs/swagger.json: tools ${SWAGGERSOURCE}
-	swagger generate spec --scan-models -o embed/public/api-docs/swagger.json 
+embed/public_html/api-docs/swagger.json: tools ${SWAGGERSOURCE}
+	swagger generate spec --scan-models -o embed/public_html/api-docs/swagger.json 
 
 .PHONY: mocks
 mocks: tools
