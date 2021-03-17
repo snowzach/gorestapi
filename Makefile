@@ -5,7 +5,7 @@ PACKAGENAME := $(shell go list -m -f '{{.Path}}')
 TOOLS := ${GOPATH}/bin/mockery \
 	${GOPATH}/bin/swagger
 SWAGGERSOURCE = $(wildcard gorestapi/*.go) \
-	$(wildcard gorestapi/thingrpc/*.go)
+	$(wildcard gorestapi/mainrpc/*.go)
 
 .PHONY: default
 default: ${EXECUTABLE}
@@ -21,17 +21,17 @@ ${GOPATH}/bin/swagger:
 
 .PHONY: swagger
 swagger: tools ${SWAGGERSOURCE}
-	swagger generate spec --scan-models -o embed/public/api-docs/swagger.json
+	swagger generate spec --scan-models -o embed/public_html/api-docs/swagger.json
 
-embed/public/api-docs/swagger.json: tools ${SWAGGERSOURCE}
-	swagger generate spec --scan-models -o embed/public/api-docs/swagger.json 
+embed/public_html/api-docs/swagger.json: tools ${SWAGGERSOURCE}
+	swagger generate spec --scan-models -o embed/public_html/api-docs/swagger.json 
 
 .PHONY: mocks
 mocks: tools
 	mockery -dir ./gorestapi -name GRStore
 
 .PHONY: ${EXECUTABLE}
-${EXECUTABLE}: tools
+${EXECUTABLE}: tools embed/public/api-docs/swagger.json
 	# Compiling...
 	go build -ldflags "-X ${PACKAGENAME}/conf.Executable=${EXECUTABLE} -X ${PACKAGENAME}/conf.GitVersion=${GITVERSION}" -o ${EXECUTABLE}
 
