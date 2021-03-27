@@ -38,7 +38,7 @@ func TestThingPost(t *testing.T) {
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
-	e.POST("/things").WithJSON(i).Expect().Status(http.StatusOK).JSON().Object().Equal(i)
+	e.POST("/api/things").WithJSON(i).Expect().Status(http.StatusOK).JSON().Object().Equal(i)
 
 	// Check remaining expectations
 	grs.AssertExpectations(t)
@@ -74,7 +74,7 @@ func TestThingsFind(t *testing.T) {
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
-	e.GET("/things").Expect().Status(http.StatusOK).JSON().Object().Equal(&store.Results{Count: 2, Results: i})
+	e.GET("/api/things").Expect().Status(http.StatusOK).JSON().Object().Equal(&store.Results{Count: 2, Results: i})
 
 	// Check remaining expectations
 	grs.AssertExpectations(t)
@@ -104,7 +104,7 @@ func TestThingGetByID(t *testing.T) {
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
-	e.GET("/things/1234").Expect().Status(http.StatusOK).JSON().Object().Equal(&i)
+	e.GET("/api/things/1234").Expect().Status(http.StatusOK).JSON().Object().Equal(&i)
 
 	// Check remaining expectations
 	grs.AssertExpectations(t)
@@ -128,7 +128,7 @@ func TestThingDeleteByID(t *testing.T) {
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
-	e.DELETE("/things/1234").Expect().Status(http.StatusNoContent)
+	e.DELETE("/api/things/1234").Expect().Status(http.StatusNoContent)
 
 	// Check remaining expectations
 	grs.AssertExpectations(t)

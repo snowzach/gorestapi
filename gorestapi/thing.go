@@ -6,7 +6,6 @@ import (
 )
 
 // Thing
-// swagger:model gorestapi_Thing
 type Thing struct {
 	// ID (Auto-Generated)
 	ID string `json:"id"`
@@ -21,7 +20,6 @@ type Thing struct {
 }
 
 // ThingExample
-// swagger:model gorestapi_ThingExample
 type ThingExample struct {
 	// Name
 	Name string `json:"name"`

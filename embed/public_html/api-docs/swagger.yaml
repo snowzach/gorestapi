@@ -1,0 +1,389 @@
+basePath: /api/v1
+definitions:
+  gorestapi.Thing:
+    properties:
+      created:
+        description: Created Timestamp
+        type: string
+      description:
+        description: Description
+        type: string
+      id:
+        description: ID (Auto-Generated)
+        type: string
+      name:
+        description: Name
+        type: string
+      updated:
+        description: Updated Timestamp
+        type: string
+    type: object
+  gorestapi.ThingExample:
+    properties:
+      description:
+        description: Description
+        type: string
+      name:
+        description: Name
+        type: string
+    type: object
+  gorestapi.Widget:
+    properties:
+      created:
+        description: Created Timestamp
+        type: string
+      description:
+        description: Description
+        type: string
+      id:
+        description: ID (Auto-Generated)
+        type: string
+      name:
+        description: Name
+        type: string
+      thing:
+        $ref: '#/definitions/gorestapi.Thing'
+        description: Loaded Structs
+      thing_id:
+        description: ThingID
+        type: string
+      updated:
+        description: Updated Timestamp
+        type: string
+    type: object
+  gorestapi.WidgetExample:
+    properties:
+      description:
+        description: Description
+        type: string
+      name:
+        description: Name
+        type: string
+      thing_id:
+        description: ThingID
+        type: string
+    type: object
+  server.ErrResponse:
+    properties:
+      error:
+        type: string
+      error_id:
+        type: string
+      status:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server celler server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /things:
+    get:
+      description: Find things
+      operationId: ThingsFind
+      parameters:
+      - description: id
+        in: query
+        name: id
+        type: string
+      - description: name
+        in: query
+        name: name
+        type: string
+      - description: description
+        in: query
+        name: description
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      - description: query
+        in: query
+        name: sort
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/gorestapi.Thing'
+            type: array
+        "400":
+          description: Invalid Argument
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+        "500":
+          description: Internal Error
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+      summary: Find things
+      tags:
+      - things
+    post:
+      description: Save a thing
+      operationId: ThingSave
+      parameters:
+      - description: Thing
+        in: body
+        name: thing
+        required: true
+        schema:
+          $ref: '#/definitions/gorestapi.ThingExample'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gorestapi.Thing'
+        "400":
+          description: Invalid Argument
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+        "500":
+          description: Internal Error
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+      summary: Save thing
+      tags:
+      - things
+  /things/{id}:
+    delete:
+      description: Delete a thing
+      operationId: ThingDeleteByID
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Success
+        "400":
+          description: Invalid Argument
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+        "500":
+          description: Internal Error
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+      summary: Delete thing
+      tags:
+      - things
+    get:
+      description: Get a thing
+      operationId: ThingGetByID
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gorestapi.Thing'
+        "400":
+          description: Invalid Argument
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+        "500":
+          description: Internal Error
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+      summary: Get thing
+      tags:
+      - things
+  /widgets:
+    get:
+      description: Find widgets
+      operationId: WidgetsFind
+      parameters:
+      - description: id
+        in: query
+        name: id
+        type: string
+      - description: name
+        in: query
+        name: name
+        type: string
+      - description: description
+        in: query
+        name: description
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      - description: query
+        in: query
+        name: sort
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/gorestapi.Widget'
+            type: array
+        "400":
+          description: Invalid Argument
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+        "500":
+          description: Internal Error
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+      summary: Find widgets
+      tags:
+      - widgets
+    post:
+      description: Save a widget
+      operationId: WidgetSave
+      parameters:
+      - description: Widget
+        in: body
+        name: widget
+        required: true
+        schema:
+          $ref: '#/definitions/gorestapi.WidgetExample'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gorestapi.Widget'
+        "400":
+          description: Invalid Argument
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+        "500":
+          description: Internal Error
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+      summary: Save widget
+      tags:
+      - widgets
+  /widgets/{id}:
+    delete:
+      description: Delete a widget
+      operationId: WidgetDeleteByID
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Success
+        "400":
+          description: Invalid Argument
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+        "500":
+          description: Internal Error
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+      summary: Delete widget
+      tags:
+      - widgets
+    get:
+      description: Get a widget
+      operationId: WidgetGetByID
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gorestapi.Widget'
+        "400":
+          description: Invalid Argument
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+        "500":
+          description: Internal Error
+          schema:
+            $ref: '#/definitions/server.ErrResponse'
+      summary: Get widget
+      tags:
+      - widgets
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+  BasicAuth:
+    type: basic
+  OAuth2AccessCode:
+    authorizationUrl: https://example.com/oauth/authorize
+    flow: accessCode
+    scopes:
+      admin: ' Grants read and write access to administrative information'
+    tokenUrl: https://example.com/oauth/token
+    type: oauth2
+  OAuth2Application:
+    authorizationUrl: ""
+    flow: application
+    scopes:
+      admin: ' Grants read and write access to administrative information'
+      write: ' Grants write access'
+    tokenUrl: https://example.com/oauth/token
+    type: oauth2
+  OAuth2Implicit:
+    authorizationUrl: https://example.com/oauth/authorize
+    flow: implicit
+    scopes:
+      admin: ' Grants read and write access to administrative information'
+      write: ' Grants write access'
+    type: oauth2
+  OAuth2Password:
+    authorizationUrl: ""
+    flow: password
+    scopes:
+      admin: ' Grants read and write access to administrative information'
+      read: ' Grants read access'
+      write: ' Grants write access'
+    tokenUrl: https://example.com/oauth/token
+    type: oauth2
+swagger: "2.0"
+x-extension-openapi:
+  example: value on a json format

@@ -1,389 +1,568 @@
 {
-  "consumes": [
-    "application/json"
-  ],
-  "produces": [
-    "application/json"
-  ],
-  "schemes": [
-    "http",
-    "https"
-  ],
-  "swagger": "2.0",
-  "info": {
-    "description": "This is the GoREST API\n\nGeneral notes should go here",
-    "title": "GoREST API",
-    "version": "0.0.1"
-  },
-  "paths": {
-    "/api/things": {
-      "get": {
-        "description": "Gets a list of things",
-        "tags": [
-          "THINGS"
-        ],
-        "summary": "Find Things",
-        "operationId": "ThingsFind",
-        "parameters": [
-          {
-            "type": "int",
-            "description": "Number of records to return",
-            "name": "limit",
-            "in": "query"
-          },
-          {
-            "type": "int",
-            "description": "Offset of records to return",
-            "name": "offset",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "description": "Filter id",
-            "name": "id",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "description": "Filter name",
-            "name": "name",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Thing Objects",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/gorestapi_Thing"
-              }
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a sample server celler server.",
+        "title": "Swagger Example API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "paths": {
+        "/things": {
+            "get": {
+                "description": "Find things",
+                "tags": [
+                    "things"
+                ],
+                "summary": "Find things",
+                "operationId": "ThingsFind",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "description",
+                        "name": "description",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "query",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/gorestapi.Thing"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Argument",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Save a thing",
+                "tags": [
+                    "things"
+                ],
+                "summary": "Save thing",
+                "operationId": "ThingSave",
+                "parameters": [
+                    {
+                        "description": "Thing",
+                        "name": "thing",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/gorestapi.ThingExample"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/gorestapi.Thing"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Argument",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    }
+                }
             }
-          }
+        },
+        "/things/{id}": {
+            "get": {
+                "description": "Get a thing",
+                "tags": [
+                    "things"
+                ],
+                "summary": "Get thing",
+                "operationId": "ThingGetByID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/gorestapi.Thing"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Argument",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a thing",
+                "tags": [
+                    "things"
+                ],
+                "summary": "Delete thing",
+                "operationId": "ThingDeleteByID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": "Invalid Argument",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/widgets": {
+            "get": {
+                "description": "Find widgets",
+                "tags": [
+                    "widgets"
+                ],
+                "summary": "Find widgets",
+                "operationId": "WidgetsFind",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "description",
+                        "name": "description",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "query",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/gorestapi.Widget"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Argument",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Save a widget",
+                "tags": [
+                    "widgets"
+                ],
+                "summary": "Save widget",
+                "operationId": "WidgetSave",
+                "parameters": [
+                    {
+                        "description": "Widget",
+                        "name": "widget",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/gorestapi.WidgetExample"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/gorestapi.Widget"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Argument",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/widgets/{id}": {
+            "get": {
+                "description": "Get a widget",
+                "tags": [
+                    "widgets"
+                ],
+                "summary": "Get widget",
+                "operationId": "WidgetGetByID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/gorestapi.Widget"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Argument",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a widget",
+                "tags": [
+                    "widgets"
+                ],
+                "summary": "Delete widget",
+                "operationId": "WidgetDeleteByID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": "Invalid Argument",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.ErrResponse"
+                        }
+                    }
+                }
+            }
         }
-      },
-      "post": {
-        "description": "Creates or saves a thing. Omit the ID to auto generate.\nPass an existing ID to update.",
-        "tags": [
-          "THINGS"
-        ],
-        "summary": "Create/Save Thing",
-        "operationId": "ThingSave",
-        "parameters": [
-          {
+    },
+    "definitions": {
+        "gorestapi.Thing": {
             "type": "object",
-            "description": "Thing to Save/Update",
-            "name": "thing",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/gorestapi_ThingExample"
+            "properties": {
+                "created": {
+                    "description": "Created Timestamp",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Description",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID (Auto-Generated)",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name",
+                    "type": "string"
+                },
+                "updated": {
+                    "description": "Updated Timestamp",
+                    "type": "string"
+                }
             }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "User Object",
-            "schema": {
-              "$ref": "#/definitions/gorestapi_Thing"
-            }
-          }
-        }
-      }
-    },
-    "/api/things/{id}": {
-      "get": {
-        "description": "Fetches a Thing",
-        "tags": [
-          "THINGS"
-        ],
-        "summary": "Get a Thing",
-        "operationId": "ThingGetByID",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Thing ID to fetch",
-            "name": "id",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Thing Object",
-            "schema": {
-              "$ref": "#/definitions/gorestapi_Thing"
-            }
-          }
-        }
-      },
-      "delete": {
-        "description": "Deletes a Thing",
-        "tags": [
-          "THINGS"
-        ],
-        "summary": "Delete a Thing",
-        "operationId": "ThingDeleteByID",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Thing ID to delete",
-            "name": "id",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No Content"
-          }
-        }
-      }
-    },
-    "/api/widgets": {
-      "get": {
-        "description": "Gets a list of widgets",
-        "tags": [
-          "WIDGETS"
-        ],
-        "summary": "Find Widgets",
-        "operationId": "WidgetsFind",
-        "parameters": [
-          {
-            "type": "int",
-            "description": "Number of records to return",
-            "name": "limit",
-            "in": "query"
-          },
-          {
-            "type": "int",
-            "description": "Offset of records to return",
-            "name": "offset",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "description": "Filter id",
-            "name": "id",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "description": "Filter name",
-            "name": "name",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Widget Objects",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/gorestapi_Widget"
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "description": "Creates or saves a widget. Omit the ID to auto generate.\nPass an existing ID to update.",
-        "tags": [
-          "WIDGETS"
-        ],
-        "summary": "Create/Save Widget",
-        "operationId": "WidgetSave",
-        "parameters": [
-          {
+        },
+        "gorestapi.ThingExample": {
             "type": "object",
-            "description": "Widget to Save/Update",
-            "name": "widget",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/gorestapi_WidgetExample"
+            "properties": {
+                "description": {
+                    "description": "Description",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name",
+                    "type": "string"
+                }
             }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "User Object",
-            "schema": {
-              "$ref": "#/definitions/gorestapi_Widget"
+        },
+        "gorestapi.Widget": {
+            "type": "object",
+            "properties": {
+                "created": {
+                    "description": "Created Timestamp",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Description",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID (Auto-Generated)",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name",
+                    "type": "string"
+                },
+                "thing": {
+                    "description": "Loaded Structs",
+                    "$ref": "#/definitions/gorestapi.Thing"
+                },
+                "thing_id": {
+                    "description": "ThingID",
+                    "type": "string"
+                },
+                "updated": {
+                    "description": "Updated Timestamp",
+                    "type": "string"
+                }
             }
-          }
+        },
+        "gorestapi.WidgetExample": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "description": "Description",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name",
+                    "type": "string"
+                },
+                "thing_id": {
+                    "description": "ThingID",
+                    "type": "string"
+                }
+            }
+        },
+        "server.ErrResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "error_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
         }
-      }
     },
-    "/api/widgets/{id}": {
-      "get": {
-        "description": "Fetches a Widget",
-        "tags": [
-          "WIDGETS"
-        ],
-        "summary": "Get a Widget",
-        "operationId": "WidgetGetByID",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Widget ID to fetch",
-            "name": "id",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Widget Object",
-            "schema": {
-              "$ref": "#/definitions/gorestapi_Widget"
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        },
+        "BasicAuth": {
+            "type": "basic"
+        },
+        "OAuth2AccessCode": {
+            "type": "oauth2",
+            "flow": "accessCode",
+            "authorizationUrl": "https://example.com/oauth/authorize",
+            "tokenUrl": "https://example.com/oauth/token",
+            "scopes": {
+                "admin": " Grants read and write access to administrative information"
             }
-          }
+        },
+        "OAuth2Application": {
+            "type": "oauth2",
+            "flow": "application",
+            "authorizationUrl": "",
+            "tokenUrl": "https://example.com/oauth/token",
+            "scopes": {
+                "admin": " Grants read and write access to administrative information",
+                "write": " Grants write access"
+            }
+        },
+        "OAuth2Implicit": {
+            "type": "oauth2",
+            "flow": "implicit",
+            "authorizationUrl": "https://example.com/oauth/authorize",
+            "scopes": {
+                "admin": " Grants read and write access to administrative information",
+                "write": " Grants write access"
+            }
+        },
+        "OAuth2Password": {
+            "type": "oauth2",
+            "flow": "password",
+            "authorizationUrl": "",
+            "tokenUrl": "https://example.com/oauth/token",
+            "scopes": {
+                "admin": " Grants read and write access to administrative information",
+                "read": " Grants read access",
+                "write": " Grants write access"
+            }
         }
-      },
-      "delete": {
-        "description": "Deletes a Widget",
-        "tags": [
-          "WIDGETS"
-        ],
-        "summary": "Delete a Widget",
-        "operationId": "WidgetDeleteByID",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Widget ID to delete",
-            "name": "id",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No Content"
-          }
-        }
-      }
+    },
+    "x-extension-openapi": {
+        "example": "value on a json format"
     }
-  },
-  "definitions": {
-    "gorestapi_Thing": {
-      "description": "Thing",
-      "type": "object",
-      "properties": {
-        "created": {
-          "description": "Created Timestamp",
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "Created"
-        },
-        "description": {
-          "description": "Description",
-          "type": "string",
-          "x-go-name": "Description"
-        },
-        "id": {
-          "description": "ID (Auto-Generated)",
-          "type": "string",
-          "x-go-name": "ID"
-        },
-        "name": {
-          "description": "Name",
-          "type": "string",
-          "x-go-name": "Name"
-        },
-        "updated": {
-          "description": "Updated Timestamp",
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "Updated"
-        }
-      },
-      "x-go-name": "Thing",
-      "x-go-package": "github.com/snowzach/gorestapi/gorestapi"
-    },
-    "gorestapi_ThingExample": {
-      "description": "ThingExample",
-      "type": "object",
-      "properties": {
-        "description": {
-          "description": "Description",
-          "type": "string",
-          "x-go-name": "Description"
-        },
-        "name": {
-          "description": "Name",
-          "type": "string",
-          "x-go-name": "Name"
-        }
-      },
-      "x-go-name": "ThingExample",
-      "x-go-package": "github.com/snowzach/gorestapi/gorestapi"
-    },
-    "gorestapi_Widget": {
-      "description": "Widget",
-      "type": "object",
-      "properties": {
-        "created": {
-          "description": "Created Timestamp",
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "Created"
-        },
-        "description": {
-          "description": "Description",
-          "type": "string",
-          "x-go-name": "Description"
-        },
-        "id": {
-          "description": "ID (Auto-Generated)",
-          "type": "string",
-          "x-go-name": "ID"
-        },
-        "name": {
-          "description": "Name",
-          "type": "string",
-          "x-go-name": "Name"
-        },
-        "thing": {
-          "$ref": "#/definitions/gorestapi_Thing"
-        },
-        "thing_id": {
-          "description": "ThingID",
-          "type": "string",
-          "x-go-name": "ThingID"
-        },
-        "updated": {
-          "description": "Updated Timestamp",
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "Updated"
-        }
-      },
-      "x-go-name": "Widget",
-      "x-go-package": "github.com/snowzach/gorestapi/gorestapi"
-    },
-    "gorestapi_WidgetExample": {
-      "description": "WidgetExample",
-      "type": "object",
-      "properties": {
-        "description": {
-          "description": "Description",
-          "type": "string",
-          "x-go-name": "Description"
-        },
-        "name": {
-          "description": "Name",
-          "type": "string",
-          "x-go-name": "Name"
-        },
-        "thing_id": {
-          "description": "ThingID",
-          "type": "string",
-          "x-go-name": "ThingID"
-        }
-      },
-      "x-go-name": "WidgetExample",
-      "x-go-package": "github.com/snowzach/gorestapi/gorestapi"
-    }
-  }
 }

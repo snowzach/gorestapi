@@ -12,32 +12,18 @@ import (
 )
 
 // ThingSave saves a thing
+//
+// @ID ThingSave
+// @Tags things
+// @Summary Save thing
+// @Description Save a thing
+// @Param thing body gorestapi.ThingExample true "Thing"
+// @Success 200 {object} gorestapi.Thing
+// @Failure 400 {object} server.ErrResponse "Invalid Argument"
+// @Failure 500 {object} server.ErrResponse "Internal Error"
+// @Router /things [post]
 func (s *Server) ThingSave() http.HandlerFunc {
 
-	// swagger:operation POST /api/things ThingSave
-	//
-	// Create/Save Thing
-	//
-	// Creates or saves a thing. Omit the ID to auto generate.
-	// Pass an existing ID to update.
-	//
-	// ---
-	// tags:
-	// - THINGS
-	// parameters:
-	// - name: thing
-	//   in: body
-	//   description: Thing to Save/Update
-	//   required: true
-	//   type: object
-	//   schema:
-	//     "$ref": "#/definitions/gorestapi_ThingExample"
-	// responses:
-	//   '200':
-	//     description: User Object
-	//     type: object
-	//     schema:
-	//       "$ref": "#/definitions/gorestapi_Thing"
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := r.Context()
@@ -64,30 +50,19 @@ func (s *Server) ThingSave() http.HandlerFunc {
 
 }
 
-// ThingGetByID returns the thing
+// ThingGetByID saves a thing
+//
+// @ID ThingGetByID
+// @Tags things
+// @Summary Get thing
+// @Description Get a thing
+// @Param id path string true "ID"
+// @Success 200 {object} gorestapi.Thing
+// @Failure 400 {object} server.ErrResponse "Invalid Argument"
+// @Failure 404 {object} server.ErrResponse "Not Found"
+// @Failure 500 {object} server.ErrResponse "Internal Error"
+// @Router /things/{id} [get]
 func (s *Server) ThingGetByID() http.HandlerFunc {
-
-	// swagger:operation GET /api/things/{id} ThingGetByID
-	//
-	// Get a Thing
-	//
-	// Fetches a Thing
-	//
-	// ---
-	// tags:
-	// - THINGS
-	// parameters:
-	// - name: id
-	//   in: path
-	//   description: Thing ID to fetch
-	//   type: string
-	//   required: true
-	// responses:
-	//   '200':
-	//     description: Thing Object
-	//     type: object
-	//     schema:
-	//       "$ref": "#/definitions/gorestapi_Thing"
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := r.Context()
@@ -112,27 +87,19 @@ func (s *Server) ThingGetByID() http.HandlerFunc {
 
 }
 
-// ThingDeleteByID deletes a thing
+// ThingDeleteByID saves a thing
+//
+// @ID ThingDeleteByID
+// @Tags things
+// @Summary Delete thing
+// @Description Delete a thing
+// @Param id path string true "ID"
+// @Success 204 "Success"
+// @Failure 400 {object} server.ErrResponse "Invalid Argument"
+// @Failure 404 {object} server.ErrResponse "Not Found"
+// @Failure 500 {object} server.ErrResponse "Internal Error"
+// @Router /things/{id} [delete]
 func (s *Server) ThingDeleteByID() http.HandlerFunc {
-
-	// swagger:operation DELETE /api/things/{id} ThingDeleteByID
-	//
-	// Delete a Thing
-	//
-	// Deletes a Thing
-	//
-	// ---
-	// tags:
-	// - THINGS
-	// parameters:
-	// - name: id
-	//   in: path
-	//   description: Thing ID to delete
-	//   type: string
-	//   required: true
-	// responses:
-	//   '204':
-	//     description: No Content
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := r.Context()
@@ -158,46 +125,23 @@ func (s *Server) ThingDeleteByID() http.HandlerFunc {
 
 }
 
-// ThingsFind finds things
+// ThingsFind saves a thing
+//
+// @ID ThingsFind
+// @Tags things
+// @Summary Find things
+// @Description Find things
+// @Param id query string false "id"
+// @Param name query string false "name"
+// @Param description query string false "description"
+// @Param offset query int false "offset"
+// @Param limit query int false "limit"
+// @Param sort query string false "query"
+// @Success 200 {array} gorestapi.Thing
+// @Failure 400 {object} server.ErrResponse "Invalid Argument"
+// @Failure 500 {object} server.ErrResponse "Internal Error"
+// @Router /things [get]
 func (s *Server) ThingsFind() http.HandlerFunc {
-
-	// swagger:operation GET /api/things ThingsFind
-	//
-	// Find Things
-	//
-	// Gets a list of things
-	//
-	// ---
-	// tags:
-	// - THINGS
-	// parameters:
-	// - name: limit
-	//   in: query
-	//   description: Number of records to return
-	//   type: int
-	//   required: false
-	// - name: offset
-	//   in: query
-	//   description: Offset of records to return
-	//   type: int
-	//   required: false
-	// - name: id
-	//   in: query
-	//   description: Filter id
-	//   type: string
-	//   required: false
-	// - name: name
-	//   in: query
-	//   description: Filter name
-	//   type: string
-	//   required: false
-	// responses:
-	//   '200':
-	//     description: Thing Objects
-	//     schema:
-	//       type: array
-	//       items:
-	//         "$ref": "#/definitions/gorestapi_Thing"
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := r.Context()

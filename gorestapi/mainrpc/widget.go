@@ -12,32 +12,18 @@ import (
 )
 
 // WidgetSave saves a widget
+//
+// @ID WidgetSave
+// @Tags widgets
+// @Summary Save widget
+// @Description Save a widget
+// @Param widget body gorestapi.WidgetExample true "Widget"
+// @Success 200 {object} gorestapi.Widget
+// @Failure 400 {object} server.ErrResponse "Invalid Argument"
+// @Failure 500 {object} server.ErrResponse "Internal Error"
+// @Router /widgets [post]
 func (s *Server) WidgetSave() http.HandlerFunc {
 
-	// swagger:operation POST /api/widgets WidgetSave
-	//
-	// Create/Save Widget
-	//
-	// Creates or saves a widget. Omit the ID to auto generate.
-	// Pass an existing ID to update.
-	//
-	// ---
-	// tags:
-	// - WIDGETS
-	// parameters:
-	// - name: widget
-	//   in: body
-	//   description: Widget to Save/Update
-	//   required: true
-	//   type: object
-	//   schema:
-	//     "$ref": "#/definitions/gorestapi_WidgetExample"
-	// responses:
-	//   '200':
-	//     description: User Object
-	//     type: object
-	//     schema:
-	//       "$ref": "#/definitions/gorestapi_Widget"
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := r.Context()
@@ -64,30 +50,19 @@ func (s *Server) WidgetSave() http.HandlerFunc {
 
 }
 
-// WidgetGetByID returns the widget
+// WidgetGetByID saves a widget
+//
+// @ID WidgetGetByID
+// @Tags widgets
+// @Summary Get widget
+// @Description Get a widget
+// @Param id path string true "ID"
+// @Success 200 {object} gorestapi.Widget
+// @Failure 400 {object} server.ErrResponse "Invalid Argument"
+// @Failure 404 {object} server.ErrResponse "Not Found"
+// @Failure 500 {object} server.ErrResponse "Internal Error"
+// @Router /widgets/{id} [get]
 func (s *Server) WidgetGetByID() http.HandlerFunc {
-
-	// swagger:operation GET /api/widgets/{id} WidgetGetByID
-	//
-	// Get a Widget
-	//
-	// Fetches a Widget
-	//
-	// ---
-	// tags:
-	// - WIDGETS
-	// parameters:
-	// - name: id
-	//   in: path
-	//   description: Widget ID to fetch
-	//   type: string
-	//   required: true
-	// responses:
-	//   '200':
-	//     description: Widget Object
-	//     type: object
-	//     schema:
-	//       "$ref": "#/definitions/gorestapi_Widget"
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := r.Context()
@@ -111,27 +86,19 @@ func (s *Server) WidgetGetByID() http.HandlerFunc {
 	}
 }
 
-// WidgetDeleteByID deletes a widget
+// WidgetDeleteByID saves a widget
+//
+// @ID WidgetDeleteByID
+// @Tags widgets
+// @Summary Delete widget
+// @Description Delete a widget
+// @Param id path string true "ID"
+// @Success 204 "Success"
+// @Failure 400 {object} server.ErrResponse "Invalid Argument"
+// @Failure 404 {object} server.ErrResponse "Not Found"
+// @Failure 500 {object} server.ErrResponse "Internal Error"
+// @Router /widgets/{id} [delete]
 func (s *Server) WidgetDeleteByID() http.HandlerFunc {
-
-	// swagger:operation DELETE /api/widgets/{id} WidgetDeleteByID
-	//
-	// Delete a Widget
-	//
-	// Deletes a Widget
-	//
-	// ---
-	// tags:
-	// - WIDGETS
-	// parameters:
-	// - name: id
-	//   in: path
-	//   description: Widget ID to delete
-	//   type: string
-	//   required: true
-	// responses:
-	//   '204':
-	//     description: No Content
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := r.Context()
@@ -155,46 +122,23 @@ func (s *Server) WidgetDeleteByID() http.HandlerFunc {
 	}
 }
 
-// WidgetsFind finds widgets
+// WidgetsFind saves a widget
+//
+// @ID WidgetsFind
+// @Tags widgets
+// @Summary Find widgets
+// @Description Find widgets
+// @Param id query string false "id"
+// @Param name query string false "name"
+// @Param description query string false "description"
+// @Param offset query int false "offset"
+// @Param limit query int false "limit"
+// @Param sort query string false "query"
+// @Success 200 {array} gorestapi.Widget
+// @Failure 400 {object} server.ErrResponse "Invalid Argument"
+// @Failure 500 {object} server.ErrResponse "Internal Error"
+// @Router /widgets [get]
 func (s *Server) WidgetsFind() http.HandlerFunc {
-
-	// swagger:operation GET /api/widgets WidgetsFind
-	//
-	// Find Widgets
-	//
-	// Gets a list of widgets
-	//
-	// ---
-	// tags:
-	// - WIDGETS
-	// parameters:
-	// - name: limit
-	//   in: query
-	//   description: Number of records to return
-	//   type: int
-	//   required: false
-	// - name: offset
-	//   in: query
-	//   description: Offset of records to return
-	//   type: int
-	//   required: false
-	// - name: id
-	//   in: query
-	//   description: Filter id
-	//   type: string
-	//   required: false
-	// - name: name
-	//   in: query
-	//   description: Filter name
-	//   type: string
-	//   required: false
-	// responses:
-	//   '200':
-	//     description: Widget Objects
-	//     schema:
-	//       type: array
-	//       items:
-	//         "$ref": "#/definitions/gorestapi_Widget"
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := r.Context()

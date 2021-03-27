@@ -38,7 +38,7 @@ func TestWidgetPost(t *testing.T) {
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
-	e.POST("/widgets").WithJSON(i).Expect().Status(http.StatusOK).JSON().Object().Equal(i)
+	e.POST("/api/widgets").WithJSON(i).Expect().Status(http.StatusOK).JSON().Object().Equal(i)
 
 	// Check remaining expectations
 	grs.AssertExpectations(t)
@@ -74,7 +74,7 @@ func TestWidgetsFind(t *testing.T) {
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
-	e.GET("/widgets").Expect().Status(http.StatusOK).JSON().Object().Equal(&store.Results{Count: 2, Results: i})
+	e.GET("/api/widgets").Expect().Status(http.StatusOK).JSON().Object().Equal(&store.Results{Count: 2, Results: i})
 
 	// Check remaining expectations
 	grs.AssertExpectations(t)
@@ -104,7 +104,7 @@ func TestWidgetGetByID(t *testing.T) {
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
-	e.GET("/widgets/1234").Expect().Status(http.StatusOK).JSON().Object().Equal(&i)
+	e.GET("/api/widgets/1234").Expect().Status(http.StatusOK).JSON().Object().Equal(&i)
 
 	// Check remaining expectations
 	grs.AssertExpectations(t)
@@ -128,7 +128,7 @@ func TestWidgetDeleteByID(t *testing.T) {
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
-	e.DELETE("/widgets/1234").Expect().Status(http.StatusNoContent)
+	e.DELETE("/api/widgets/1234").Expect().Status(http.StatusNoContent)
 
 	// Check remaining expectations
 	grs.AssertExpectations(t)

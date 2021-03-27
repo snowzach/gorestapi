@@ -3,7 +3,7 @@ GITVERSION := $(shell git describe --dirty --always --tags --long)
 GOPATH ?= ${HOME}/go
 PACKAGENAME := $(shell go list -m -f '{{.Path}}')
 TOOLS := ${GOPATH}/bin/mockery \
-	${GOPATH}/bin/swagger
+	${GOPATH}/bin/swag
 SWAGGERSOURCE = $(wildcard gorestapi/*.go) \
 	$(wildcard gorestapi/mainrpc/*.go)
 
@@ -13,18 +13,19 @@ default: ${EXECUTABLE}
 tools: ${TOOLS}
 
 ${GOPATH}/bin/mockery:
-	go get github.com/vektra/mockery/cmd/mockery 
+	go install github.com/vektra/mockery/cmd/mockery@latest
 
-${GOPATH}/bin/swagger:
-	wget -O ${GOPATH}/bin/swagger https://github.com/go-swagger/go-swagger/releases/download/v0.25.0/swagger_linux_amd64
-	chmod 755 ${GOPATH}/bin/swagger
+${GOPATH}/bin/swag:
+	go install github.com/swaggo/swag/cmd/swag@latest
 
 .PHONY: swagger
 swagger: tools ${SWAGGERSOURCE}
-	swagger generate spec --scan-models -o embed/public_html/api-docs/swagger.json
-
+	swag init --dir . --generalInfo gorestapi/swagger.go --exclude embed --output embed/public_html/api-docs
+	rm embed/public_html/api-docs/docs.go
+	
 embed/public_html/api-docs/swagger.json: tools ${SWAGGERSOURCE}
-	swagger generate spec --scan-models -o embed/public_html/api-docs/swagger.json 
+	swag init --dir . --generalInfo gorestapi/swagger.go --exclude embed --output embed/public_html/api-docs
+	rm embed/public_html/api-docs/docs.go
 
 .PHONY: mocks
 mocks: tools
