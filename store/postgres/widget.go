@@ -13,6 +13,22 @@ import (
 	"github.com/snowzach/gorestapi/store"
 )
 
+const (
+	WidgetSchema = ``
+	WidgetTable  = `widget`
+	WidgetJoins  = `
+	LEFT JOIN thing ON widget.thing_id = thing.id
+	`
+	WidgetFields = `
+	COALESCE(widget.id, '') as "widget.id",
+	COALESCE(widget.created, '0001-01-01 00:00:00 UTC') as "widget.created",
+	COALESCE(widget.updated, '0001-01-01 00:00:00 UTC') as "widget.updated",
+	COALESCE(widget.name, '') as "widget.name",
+	COALESCE(widget.description, '') as "widget.description"
+	COALESCE(widget.thing_id, '') as "widget.thing_id"
+	`
+)
+
 var (
 	WidgetSelect = "SELECT " + strings.Join([]string{
 		"widget.*",
@@ -20,71 +36,60 @@ var (
 	}, ",")
 )
 
-const (
-	WidgetFrom = ` FROM widget
-	LEFT JOIN thing ON widget.thing_id = thing.id
-	`
-
-	WidgetFields = `COALESCE(widget.id, '') as "widget.id",
-	COALESCE(widget.created, '0001-01-01 00:00:00 UTC') as "widget.created",
-	COALESCE(widget.updated, '0001-01-01 00:00:00 UTC') as "widget.updated",
-	COALESCE(widget.name, '') as "widget.name",
-	COALESCE(widget.description, '') as "widget.description"
-	widget.thing_id
-	`
-)
-
-// WidgetSave saves the widget
-func (c *Client) WidgetSave(ctx context.Context, widget *gorestapi.Widget) error {
+// WidgetSave saves a record
+func (c *Client) WidgetSave(ctx context.Context, record *gorestapi.Widget) error {
 
 	// Generate an ID if needed
-	if widget.ID == "" {
-		widget.ID = c.newID()
+	if record.ID == "" {
+		record.ID = c.newID()
 	}
 
-	err := c.db.GetContext(ctx, widget, `
-	WITH widget AS (
-		INSERT INTO widget (id, created, updated, name, description, thing_id)
-		VALUES($1, NOW(), NOW(), $2, $3, $4)
-		ON CONFLICT (id) DO UPDATE
-		SET 
-		updated = NOW(),
-		name = $2,
-		description = $3,
-		thing_id = $4
-		RETURNING *
-	) `+WidgetSelect+WidgetFrom, widget.ID, widget.Name, widget.Description, widget.ThingID)
+	fields, values, updates, args := composeUpsert([]field{
+		{name: "id", insert: "$#", update: "", arg: record.ID},
+		{name: "created", insert: "NOW()", update: ""},
+		{name: "updated", insert: "", update: "NOW()"},
+		{name: "name", insert: "$#", update: "$#", arg: record.Name},
+		{name: "description", insert: "$#", update: "$#", arg: record.Description},
+		{name: "thing_id", insert: "$#", update: "$#", arg: record.ThingID},
+	})
+
+	err := c.db.GetContext(ctx, record, `
+	WITH `+WidgetTable+` AS (
+        INSERT INTO `+ThingSchema+WidgetTable+` (`+fields+`)
+        VALUES(`+values+`) ON CONFLICT (id) DO UPDATE
+        SET `+updates+` RETURNING *
+	) `+WidgetFields+" FROM "+WidgetTable+WidgetJoins, args...)
 	if err != nil {
 		return wrapError(err)
 	}
 
-	widget.SyncDB()
+	record.SyncDB() // Clean empty structs
 
 	return nil
 
 }
 
-// WidgetGetByID returns the the widget by id
+// WidgetGetByID returns the record by id
 func (c *Client) WidgetGetByID(ctx context.Context, id string) (*gorestapi.Widget, error) {
 
-	widget := new(gorestapi.Widget)
-	err := c.db.GetContext(ctx, widget, WidgetSelect+WidgetFrom+`WHERE widget.id = $1`, id)
+	record := new(gorestapi.Widget)
+	err := c.db.GetContext(ctx, record, WidgetSelect+` FROM `+WidgetSchema+WidgetTable+WidgetJoins+` WHERE `+WidgetTable+`.id = $1`, id)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	} else if err != nil {
 		return nil, wrapError(err)
 	}
 
-	widget.SyncDB()
+	record.SyncDB() // Clean empty structs
 
-	return widget, nil
+	return record, nil
 
 }
 
-// WidgetDeleteByID an widget
+// WidgetDeleteByID deletes a record by id
 func (c *Client) WidgetDeleteByID(ctx context.Context, id string) error {
 
-	_, err := c.db.ExecContext(ctx, `DELETE FROM widget WHERE widget.id = $1`, id)
+	_, err := c.db.ExecContext(ctx, `DELETE FROM `+WidgetSchema+WidgetTable+` WHERE `+WidgetTable+`.id = $1`, id)
 	if err != nil {
 		return wrapError(err)
 	}
@@ -92,7 +97,7 @@ func (c *Client) WidgetDeleteByID(ctx context.Context, id string) error {
 
 }
 
-// WidgetsFind fetches a widgets with filter and pagination
+// WidgetsFind fetches records with filter and pagination
 func (c *Client) WidgetsFind(ctx context.Context, qp *queryp.QueryParameters) ([]*gorestapi.Widget, int64, error) {
 
 	var queryClause strings.Builder
@@ -103,6 +108,7 @@ func (c *Client) WidgetsFind(ctx context.Context, qp *queryp.QueryParameters) ([
 		"widget.name":        queryp.FilterTypeString,
 		"widget.description": queryp.FilterTypeString,
 		"widget.thing_id":    queryp.FilterTypeSimple,
+		"thing.name":         queryp.FilterTypeString,
 	}
 
 	sortFields := queryp.SortFields{
@@ -110,6 +116,7 @@ func (c *Client) WidgetsFind(ctx context.Context, qp *queryp.QueryParameters) ([
 		"widget.created": "",
 		"widget.updated": "",
 		"widget.name":    "",
+		"thing.name":     "",
 	}
 	// Default sort
 	if len(qp.Sort) == 0 {
@@ -125,7 +132,7 @@ func (c *Client) WidgetsFind(ctx context.Context, qp *queryp.QueryParameters) ([
 	}
 
 	var count int64
-	if err := c.db.GetContext(ctx, &count, `SELECT COUNT(*) AS count`+WidgetFrom+queryClause.String(), queryParams...); err != nil {
+	if err := c.db.GetContext(ctx, &count, `SELECT COUNT(*) AS count FROM `+WidgetSchema+WidgetTable+WidgetJoins+queryClause.String(), queryParams...); err != nil {
 		return nil, 0, wrapError(err)
 	}
 	if err := qppg.SortQuery(sortFields, qp.Sort, &queryClause, &queryParams); err != nil {
@@ -138,15 +145,15 @@ func (c *Client) WidgetsFind(ctx context.Context, qp *queryp.QueryParameters) ([
 		queryClause.WriteString(" OFFSET " + strconv.FormatInt(qp.Offset, 10))
 	}
 
-	var widgets = make([]*gorestapi.Widget, 0)
-	err := c.db.SelectContext(ctx, &widgets, WidgetSelect+WidgetFrom+queryClause.String(), queryParams...)
+	var records = make([]*gorestapi.Widget, 0)
+	err := c.db.SelectContext(ctx, &records, WidgetSelect+` FROM `+WidgetSchema+WidgetTable+WidgetJoins+queryClause.String(), queryParams...)
 	if err != nil {
-		return widgets, 0, wrapError(err)
+		return records, 0, wrapError(err)
 	}
 
-	for _, widget := range widgets {
-		widget.SyncDB()
+	for _, record := range records {
+		record.SyncDB()
 	}
 
-	return widgets, count, nil
+	return records, count, nil
 }

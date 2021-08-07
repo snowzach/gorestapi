@@ -13,15 +13,10 @@ import (
 	"github.com/snowzach/gorestapi/store"
 )
 
-var (
-	ThingSelect = "SELECT " + strings.Join([]string{
-		"thing.*",
-	}, ",")
-)
-
 const (
-	ThingFrom = ` FROM thing`
-
+	ThingSchema = ``
+	ThingTable  = `thing`
+	ThingJoins  = ``
 	ThingFields = `COALESCE(thing.id, '') as "thing.id",
 	COALESCE(thing.created, '0001-01-01 00:00:00 UTC') as "thing.created",
 	COALESCE(thing.updated, '0001-01-01 00:00:00 UTC') as "thing.updated",
@@ -30,25 +25,33 @@ const (
 	`
 )
 
-// ThingSave saves the thing
-func (c *Client) ThingSave(ctx context.Context, thing *gorestapi.Thing) error {
+var (
+	ThingSelect = "SELECT " + strings.Join([]string{
+		"thing.*",
+	}, ",")
+)
 
-	// Generate an ID if needed
-	if thing.ID == "" {
-		thing.ID = c.newID()
+// ThingSave saves the record
+func (c *Client) ThingSave(ctx context.Context, record *gorestapi.Thing) error {
+
+	if record.ID == "" {
+		record.ID = c.newID()
 	}
 
-	err := c.db.GetContext(ctx, thing, `
-	WITH thing AS (
-		INSERT INTO thing (id, created, updated, name, description)
-		VALUES($1, NOW(), NOW(), $2, $3)
-		ON CONFLICT (id) DO UPDATE
-		SET 
-		updated = NOW(),
-		name = $2,
-		description = $3
-		RETURNING *
-	) `+ThingSelect+ThingFrom, thing.ID, thing.Name, thing.Description)
+	fields, values, updates, args := composeUpsert([]field{
+		{name: "id", insert: "$#", update: "", arg: record.ID},
+		{name: "created", insert: "NOW()", update: ""},
+		{name: "updated", insert: "", update: "NOW()"},
+		{name: "name", insert: "$#", update: "$#", arg: record.Name},
+		{name: "description", insert: "$#", update: "$#", arg: record.Description},
+	})
+
+	err := c.db.GetContext(ctx, record, `
+	WITH `+ThingTable+` AS (
+        INSERT INTO `+ThingSchema+ThingTable+` (`+fields+`)
+        VALUES(`+values+`) ON CONFLICT (id) DO UPDATE
+        SET `+updates+` RETURNING *
+	) `+ThingSelect+" FROM "+ThingTable+ThingJoins, args...)
 	if err != nil {
 		return wrapError(err)
 	}
@@ -56,11 +59,11 @@ func (c *Client) ThingSave(ctx context.Context, thing *gorestapi.Thing) error {
 
 }
 
-// ThingGetByID returns the the thing by id
+// ThingGetByID returns the the record by id
 func (c *Client) ThingGetByID(ctx context.Context, id string) (*gorestapi.Thing, error) {
 
 	thing := new(gorestapi.Thing)
-	err := c.db.GetContext(ctx, thing, ThingSelect+ThingFrom+` WHERE thing.id = $1`, id)
+	err := c.db.GetContext(ctx, thing, ThingSelect+` FROM `+ThingSchema+ThingTable+ThingJoins+` WHERE `+ThingTable+`.id = $1`, id)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	} else if err != nil {
@@ -70,10 +73,10 @@ func (c *Client) ThingGetByID(ctx context.Context, id string) (*gorestapi.Thing,
 
 }
 
-// ThingDeleteByID an thing
+// ThingDeleteByID deletes a record by id
 func (c *Client) ThingDeleteByID(ctx context.Context, id string) error {
 
-	_, err := c.db.ExecContext(ctx, `DELETE FROM thing WHERE thing.id = $1`, id)
+	_, err := c.db.ExecContext(ctx, `DELETE FROM `+ThingSchema+ThingTable+` WHERE `+ThingTable+`.id = $1`, id)
 	if err != nil {
 		return wrapError(err)
 	}
@@ -81,7 +84,7 @@ func (c *Client) ThingDeleteByID(ctx context.Context, id string) error {
 
 }
 
-// ThingsFind fetches a things with filter and pagination
+// ThingsFind fetches records with filter and pagination
 func (c *Client) ThingsFind(ctx context.Context, qp *queryp.QueryParameters) ([]*gorestapi.Thing, int64, error) {
 
 	var queryClause strings.Builder
@@ -112,7 +115,7 @@ func (c *Client) ThingsFind(ctx context.Context, qp *queryp.QueryParameters) ([]
 		return nil, 0, &store.Error{Type: store.ErrorTypeQuery, Err: err}
 	}
 	var count int64
-	if err := c.db.GetContext(ctx, &count, `SELECT COUNT(*) AS count`+ThingFrom+queryClause.String(), queryParams...); err != nil {
+	if err := c.db.GetContext(ctx, &count, `SELECT COUNT(*) AS count FROM `+ThingSchema+ThingTable+ThingJoins+queryClause.String(), queryParams...); err != nil {
 		return nil, 0, wrapError(err)
 	}
 	if err := qppg.SortQuery(sortFields, qp.Sort, &queryClause, &queryParams); err != nil {
@@ -125,11 +128,11 @@ func (c *Client) ThingsFind(ctx context.Context, qp *queryp.QueryParameters) ([]
 		queryClause.WriteString(" OFFSET " + strconv.FormatInt(qp.Offset, 10))
 	}
 
-	var things = make([]*gorestapi.Thing, 0)
-	err := c.db.SelectContext(ctx, &things, ThingSelect+ThingFrom+queryClause.String(), queryParams...)
+	var records = make([]*gorestapi.Thing, 0)
+	err := c.db.SelectContext(ctx, &records, ThingSelect+` FROM `+ThingSchema+ThingTable+ThingJoins+queryClause.String(), queryParams...)
 	if err != nil {
-		return things, 0, wrapError(err)
+		return records, 0, wrapError(err)
 	}
 
-	return things, count, nil
+	return records, count, nil
 }
