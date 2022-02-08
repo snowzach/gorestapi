@@ -49,20 +49,30 @@ var (
 	}
 )
 
-// Execute starts the program
-func Execute() {
+func init() {
+	cli.OnInitialize(
+		initializeConfig,
+		initializeProfiler,
+	)
+}
 
+func initializeConfig() {
 	// Load configuration
 	_ = conf.Defaults(conf.C)
-	if configFile := rootCmd.PersistentFlags().StringP("config", "c", "", "config file"); configFile != nil && *configFile != "" {
-		_ = conf.File(conf.C, *configFile)
+	if configFile := rootCmd.PersistentFlags().Lookup("config"); configFile != nil {
+		if err := conf.File(conf.C, configFile.Value.String()); err != nil {
+			panic(err)
+		}
 	}
 	_ = conf.Env(conf.C)
 
+	conf.C.Print()
+
 	conf.InitLogger(conf.C)
+}
 
+func initializeProfiler() {
 	logger = zap.S().With("package", "cmd")
-
 	if conf.C.Bool("profiler.enabled") {
 		hostPort := net.JoinHostPort(conf.C.String("profiler.host"), conf.C.String("profiler.port"))
 		go func() {
@@ -72,6 +82,11 @@ func Execute() {
 		}()
 		logger.Infof("profiler enabled on http://%s", hostPort)
 	}
+}
+
+// Execute starts the program
+func Execute() {
+	rootCmd.PersistentFlags().StringP("config", "c", "", "config file")
 
 	// Run the program
 	if err := rootCmd.Execute(); err != nil {

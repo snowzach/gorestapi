@@ -10,10 +10,16 @@ You can clone it anywhere, just run `make` inside the cloned directory to build
 This does require a postgres database to be setup and reachable. It will attempt to create and migrate the database upon starting.
 
 ## Configuration
-The configuration is designed to be specified with environment variables in all caps with underscores instead of periods. 
+The configuration is designed to be specified either with environment variables or configuration files.
+Environment variables are all caps with underscores instead of periods.
 ```
 Example:
 LOGGER_LEVEL=debug
+```
+```
+Example config.yaml:
+database:
+  host: db-host
 ```
 
 ### Options:
