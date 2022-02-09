@@ -13,7 +13,7 @@ default: ${EXECUTABLE}
 tools: ${TOOLS}
 
 ${GOPATH}/bin/mockery:
-	go install github.com/vektra/mockery/cmd/mockery@latest
+	go install github.com/vektra/mockery/v2@latest
 
 ${GOPATH}/bin/swag:
 	go install github.com/swaggo/swag/cmd/swag@latest

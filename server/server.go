@@ -38,6 +38,11 @@ func New(config *koanf.Koanf) (*Server, error) {
 		}
 	}
 
+	// Gather metrics for requests.
+	if config.Bool("metrics.enabled") {
+		r.Use(metricsMiddleware())
+	}
+
 	// CORS Config
 	r.Use(cors.New(cors.Options{
 		AllowedOrigins:   config.Strings("server.cors.allowed_origins"),

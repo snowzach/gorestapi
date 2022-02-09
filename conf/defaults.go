@@ -29,13 +29,14 @@ func Defaults(c *koanf.Koanf) error {
 		"logger.disable_caller":     false,
 		"logger.disable_stacktrace": true,
 
+		// Metrics endpoint
+		"metrics.enabled":  true,
+		"metrics.host":     "",
+		"metrics.port":     "6060",
+		"profiler.enabled": true,
+
 		// Pidfile
 		"pidfile": "",
-
-		// Profiler config
-		"profiler.enabled": false,
-		"profiler.host":    "",
-		"profiler.port":    "6060",
 
 		// Server Configuration
 		"server.host":                     "",
