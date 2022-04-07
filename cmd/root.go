@@ -3,16 +3,16 @@ package cmd
 import (
 	"fmt"
 	"net"
-	"os"
-
 	"net/http"
 	"net/http/pprof"
+	"os"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	cli "github.com/spf13/cobra"
-	"go.uber.org/zap"
 
-	"github.com/snowzach/gorestapi/conf"
+	"github.com/snowzach/gorestapi/pkg/conf"
+	"github.com/snowzach/gorestapi/pkg/log"
+	"github.com/snowzach/gorestapi/pkg/version"
 )
 
 func init() {
@@ -24,50 +24,52 @@ var (
 	// Config and global logger
 	pidFile string
 	cfgFile string
-	logger  *zap.SugaredLogger
 
 	// The Root Cli Handler
 	rootCmd = &cli.Command{
-		Version: conf.GitVersion,
-		Use:     conf.Executable,
+		Version: version.GitVersion,
+		Use:     version.Executable,
 		PersistentPreRunE: func(cmd *cli.Command, args []string) error {
 
-			// Load configuration
-			_ = conf.Defaults(conf.C)
-			if cfgFile != "" {
-				if err := conf.File(conf.C, cfgFile); err != nil {
-					return fmt.Errorf("could not load config file %s: %v", cfgFile, err)
-				}
+			// Parse defaults, config file and environment.
+			if err := conf.C.Parse(
+				conf.WithMap(defaults()),
+				conf.WithFile(cfgFile),
+				conf.WithEnv(),
+			); err != nil {
+				fmt.Printf("could not load config: %v", err)
+				os.Exit(1)
 			}
-			_ = conf.Env(conf.C)
 
-			conf.InitLogger(conf.C)
+			var loggerConfig log.LoggerConfig
+			if err := conf.C.Unmarshal(&loggerConfig, conf.UnmarshalConf{Path: "logger"}); err != nil {
+				fmt.Printf("could not parse logger config: %v", err)
+				os.Exit(1)
+			}
+			if err := log.InitLogger(&loggerConfig); err != nil {
+				fmt.Printf("could not configure logger: %v", err)
+				os.Exit(1)
+			}
 
-			logger = zap.S().With("package", "cmd")
-
+			// Load the metrics server
 			if conf.C.Bool("metrics.enabled") {
-
 				hostPort := net.JoinHostPort(conf.C.String("metrics.host"), conf.C.String("metrics.port"))
-				logger.Infow("Metrics enabled", "address", hostPort)
-
 				r := http.NewServeMux()
-
 				r.Handle("/metrics", promhttp.Handler())
-
 				if conf.C.Bool("profiler.enabled") {
 					r.HandleFunc("/debug/pprof/", pprof.Index)
 					r.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 					r.HandleFunc("/debug/pprof/profile", pprof.Profile)
 					r.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 					r.HandleFunc("/debug/pprof/trace", pprof.Trace)
-					logger.Infow("Profiler enabled", "profiler_path", fmt.Sprintf("http://%s/debug/pprof/", hostPort))
+					log.Infow("Profiler enabled", "profiler_path", fmt.Sprintf("http://%s/debug/pprof/", hostPort))
 				}
-
 				go func() {
 					if err := http.ListenAndServe(hostPort, r); err != nil {
-						logger.Errorf("metrics server error: %v", err)
+						log.Errorf("Metrics server error: %v", err)
 					}
 				}()
+				log.Infow("Metrics enabled", "address", hostPort)
 			}
 
 			// Create Pid File
@@ -75,12 +77,12 @@ var (
 			if pidFile != "" {
 				file, err := os.OpenFile(pidFile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
 				if err != nil {
-					return fmt.Errorf("Could not create pid file: %s Error:%v", pidFile, err)
+					return fmt.Errorf("could not create pid file: %s error:%v", pidFile, err)
 				}
 				defer file.Close()
 				_, err = fmt.Fprintf(file, "%d\n", os.Getpid())
 				if err != nil {
-					return fmt.Errorf("Could not create pid file: %s Error:%v", pidFile, err)
+					return fmt.Errorf("could not create pid file: %s error:%v", pidFile, err)
 				}
 			}
 			return nil
@@ -96,7 +98,6 @@ var (
 
 // Execute starts the program
 func Execute() {
-	// Run the program
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 	}

@@ -1,4 +1,4 @@
-package conf
+package version
 
 import (
 	"encoding/json"

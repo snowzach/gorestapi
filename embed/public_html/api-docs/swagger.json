@@ -77,13 +77,13 @@
                     "400": {
                         "description": "Invalid Argument",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Error",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     }
                 }
@@ -116,13 +116,13 @@
                     "400": {
                         "description": "Invalid Argument",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Error",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     }
                 }
@@ -155,19 +155,19 @@
                     "400": {
                         "description": "Invalid Argument",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Error",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     }
                 }
@@ -195,19 +195,19 @@
                     "400": {
                         "description": "Invalid Argument",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Error",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     }
                 }
@@ -272,13 +272,13 @@
                     "400": {
                         "description": "Invalid Argument",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Error",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     }
                 }
@@ -311,13 +311,13 @@
                     "400": {
                         "description": "Invalid Argument",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Error",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     }
                 }
@@ -350,19 +350,19 @@
                     "400": {
                         "description": "Invalid Argument",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Error",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     }
                 }
@@ -390,19 +390,19 @@
                     "400": {
                         "description": "Invalid Argument",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Error",
                         "schema": {
-                            "$ref": "#/definitions/server.ErrResponse"
+                            "$ref": "#/definitions/render.ErrResponse"
                         }
                     }
                 }
@@ -498,7 +498,7 @@
                 }
             }
         },
-        "server.ErrResponse": {
+        "render.ErrResponse": {
             "type": "object",
             "properties": {
                 "error": {

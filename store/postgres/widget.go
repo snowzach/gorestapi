@@ -11,6 +11,7 @@ import (
 
 	"github.com/snowzach/gorestapi/gorestapi"
 	"github.com/snowzach/gorestapi/store"
+	"github.com/snowzach/gorestapi/store/driver/postgres"
 )
 
 const (
@@ -44,13 +45,13 @@ func (c *Client) WidgetSave(ctx context.Context, record *gorestapi.Widget) error
 		record.ID = c.newID()
 	}
 
-	fields, values, updates, args := composeUpsert([]field{
-		{name: "id", insert: "$#", update: "", arg: record.ID},
-		{name: "created", insert: "NOW()", update: ""},
-		{name: "updated", insert: "", update: "NOW()"},
-		{name: "name", insert: "$#", update: "$#", arg: record.Name},
-		{name: "description", insert: "$#", update: "$#", arg: record.Description},
-		{name: "thing_id", insert: "$#", update: "$#", arg: record.ThingID},
+	fields, values, updates, args := postgres.ComposeUpsert([]postgres.Field{
+		{Name: "id", Insert: "$#", Update: "", Arg: record.ID},
+		{Name: "created", Insert: "NOW()", Update: ""},
+		{Name: "updated", Insert: "", Update: "NOW()"},
+		{Name: "name", Insert: "$#", Update: "$#", Arg: record.Name},
+		{Name: "description", Insert: "$#", Update: "$#", Arg: record.Description},
+		{Name: "thing_id", Insert: "$#", Update: "$#", Arg: record.ThingID},
 	})
 
 	err := c.db.GetContext(ctx, record, `
@@ -60,7 +61,7 @@ func (c *Client) WidgetSave(ctx context.Context, record *gorestapi.Widget) error
         SET `+updates+` RETURNING *
 	) `+WidgetFields+" FROM "+WidgetTable+WidgetJoins, args...)
 	if err != nil {
-		return wrapError(err)
+		return postgres.WrapError(err)
 	}
 
 	record.SyncDB() // Clean empty structs
@@ -77,7 +78,7 @@ func (c *Client) WidgetGetByID(ctx context.Context, id string) (*gorestapi.Widge
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	} else if err != nil {
-		return nil, wrapError(err)
+		return nil, postgres.WrapError(err)
 	}
 
 	record.SyncDB() // Clean empty structs
@@ -91,7 +92,7 @@ func (c *Client) WidgetDeleteByID(ctx context.Context, id string) error {
 
 	_, err := c.db.ExecContext(ctx, `DELETE FROM `+WidgetSchema+WidgetTable+` WHERE `+WidgetTable+`.id = $1`, id)
 	if err != nil {
-		return wrapError(err)
+		return postgres.WrapError(err)
 	}
 	return nil
 
@@ -133,7 +134,7 @@ func (c *Client) WidgetsFind(ctx context.Context, qp *queryp.QueryParameters) ([
 
 	var count int64
 	if err := c.db.GetContext(ctx, &count, `SELECT COUNT(*) AS count FROM `+WidgetSchema+WidgetTable+WidgetJoins+queryClause.String(), queryParams...); err != nil {
-		return nil, 0, wrapError(err)
+		return nil, 0, postgres.WrapError(err)
 	}
 	if err := qppg.SortQuery(sortFields, qp.Sort, &queryClause, &queryParams); err != nil {
 		return nil, 0, &store.Error{Type: store.ErrorTypeQuery, Err: err}
@@ -148,7 +149,7 @@ func (c *Client) WidgetsFind(ctx context.Context, qp *queryp.QueryParameters) ([
 	var records = make([]*gorestapi.Widget, 0)
 	err := c.db.SelectContext(ctx, &records, WidgetSelect+` FROM `+WidgetSchema+WidgetTable+WidgetJoins+queryClause.String(), queryParams...)
 	if err != nil {
-		return records, 0, wrapError(err)
+		return records, 0, postgres.WrapError(err)
 	}
 
 	for _, record := range records {

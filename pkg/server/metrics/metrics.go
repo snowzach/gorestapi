@@ -1,11 +1,13 @@
-package server
+package metrics
 
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -32,13 +34,34 @@ func init() {
 	prometheus.MustRegister(MetricRequestDurationSecondsBucket)
 }
 
-func metricsMiddleware() func(http.Handler) http.Handler {
+type Config struct {
+	IgnorePaths []string `conf:"ignore_paths"`
+}
+
+func MetricsMiddleware(config Config) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			// Check if the prefix should be ignored
+			for _, prefix := range config.IgnorePaths {
+				if strings.HasPrefix(r.RequestURI, prefix) {
+					next.ServeHTTP(w, r)
+					return
+				}
+			}
+
 			start := time.Now()
-			path := r.URL.Path
-			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+
+			// See if we're already using a wrapped response writer and if not make one.
+			ww, ok := w.(middleware.WrapResponseWriter)
+			if !ok {
+				ww = middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+			}
+
 			next.ServeHTTP(ww, r)
+
+			path := chi.RouteContext(r.Context()).RoutePattern()
+
 			MetricRequestsTotal.With(
 				prometheus.Labels{
 					"path":   path,

@@ -11,6 +11,7 @@ import (
 
 	"github.com/snowzach/gorestapi/gorestapi"
 	"github.com/snowzach/gorestapi/store"
+	"github.com/snowzach/gorestapi/store/driver/postgres"
 )
 
 const (
@@ -38,12 +39,12 @@ func (c *Client) ThingSave(ctx context.Context, record *gorestapi.Thing) error {
 		record.ID = c.newID()
 	}
 
-	fields, values, updates, args := composeUpsert([]field{
-		{name: "id", insert: "$#", update: "", arg: record.ID},
-		{name: "created", insert: "NOW()", update: ""},
-		{name: "updated", insert: "", update: "NOW()"},
-		{name: "name", insert: "$#", update: "$#", arg: record.Name},
-		{name: "description", insert: "$#", update: "$#", arg: record.Description},
+	fields, values, updates, args := postgres.ComposeUpsert([]postgres.Field{
+		{Name: "id", Insert: "$#", Update: "", Arg: record.ID},
+		{Name: "created", Insert: "NOW()", Update: ""},
+		{Name: "updated", Insert: "", Update: "NOW()"},
+		{Name: "name", Insert: "$#", Update: "$#", Arg: record.Name},
+		{Name: "description", Insert: "$#", Update: "$#", Arg: record.Description},
 	})
 
 	err := c.db.GetContext(ctx, record, `
@@ -53,7 +54,7 @@ func (c *Client) ThingSave(ctx context.Context, record *gorestapi.Thing) error {
         SET `+updates+` RETURNING *
 	) `+ThingSelect+" FROM "+ThingTable+ThingJoins, args...)
 	if err != nil {
-		return wrapError(err)
+		return postgres.WrapError(err)
 	}
 	return nil
 
@@ -67,7 +68,7 @@ func (c *Client) ThingGetByID(ctx context.Context, id string) (*gorestapi.Thing,
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	} else if err != nil {
-		return nil, wrapError(err)
+		return nil, postgres.WrapError(err)
 	}
 	return thing, nil
 
@@ -78,7 +79,7 @@ func (c *Client) ThingDeleteByID(ctx context.Context, id string) error {
 
 	_, err := c.db.ExecContext(ctx, `DELETE FROM `+ThingSchema+ThingTable+` WHERE `+ThingTable+`.id = $1`, id)
 	if err != nil {
-		return wrapError(err)
+		return postgres.WrapError(err)
 	}
 	return nil
 
@@ -116,7 +117,7 @@ func (c *Client) ThingsFind(ctx context.Context, qp *queryp.QueryParameters) ([]
 	}
 	var count int64
 	if err := c.db.GetContext(ctx, &count, `SELECT COUNT(*) AS count FROM `+ThingSchema+ThingTable+ThingJoins+queryClause.String(), queryParams...); err != nil {
-		return nil, 0, wrapError(err)
+		return nil, 0, postgres.WrapError(err)
 	}
 	if err := qppg.SortQuery(sortFields, qp.Sort, &queryClause, &queryParams); err != nil {
 		return nil, 0, &store.Error{Type: store.ErrorTypeQuery, Err: err}
@@ -131,7 +132,7 @@ func (c *Client) ThingsFind(ctx context.Context, qp *queryp.QueryParameters) ([]
 	var records = make([]*gorestapi.Thing, 0)
 	err := c.db.SelectContext(ctx, &records, ThingSelect+` FROM `+ThingSchema+ThingTable+ThingJoins+queryClause.String(), queryParams...)
 	if err != nil {
-		return records, 0, wrapError(err)
+		return records, 0, postgres.WrapError(err)
 	}
 
 	return records, count, nil

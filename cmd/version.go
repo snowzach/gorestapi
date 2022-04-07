@@ -5,7 +5,7 @@ import (
 
 	cli "github.com/spf13/cobra"
 
-	"github.com/snowzach/gorestapi/conf"
+	"github.com/snowzach/gorestapi/pkg/version"
 )
 
 // Version command
@@ -15,7 +15,7 @@ func init() {
 		Short: "Show version",
 		Long:  `Show version`,
 		Run: func(cmd *cli.Command, args []string) {
-			fmt.Println(conf.Executable + " - " + conf.GitVersion)
+			fmt.Println(version.Executable + " - " + version.GitVersion)
 		},
 	})
 }

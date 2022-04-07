@@ -1,7 +1,7 @@
 package mainrpc
 
 import (
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/snowzach/gorestapi/gorestapi"
 	"go.uber.org/zap"
 )

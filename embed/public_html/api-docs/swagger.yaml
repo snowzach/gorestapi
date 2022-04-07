@@ -63,7 +63,7 @@ definitions:
         description: ThingID
         type: string
     type: object
-  server.ErrResponse:
+  render.ErrResponse:
     properties:
       error:
         type: string
@@ -125,11 +125,11 @@ paths:
         "400":
           description: Invalid Argument
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
         "500":
           description: Internal Error
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
       summary: Find things
       tags:
       - things
@@ -151,11 +151,11 @@ paths:
         "400":
           description: Invalid Argument
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
         "500":
           description: Internal Error
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
       summary: Save thing
       tags:
       - things
@@ -175,15 +175,15 @@ paths:
         "400":
           description: Invalid Argument
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
         "500":
           description: Internal Error
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
       summary: Delete thing
       tags:
       - things
@@ -204,15 +204,15 @@ paths:
         "400":
           description: Invalid Argument
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
         "500":
           description: Internal Error
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
       summary: Get thing
       tags:
       - things
@@ -255,11 +255,11 @@ paths:
         "400":
           description: Invalid Argument
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
         "500":
           description: Internal Error
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
       summary: Find widgets
       tags:
       - widgets
@@ -281,11 +281,11 @@ paths:
         "400":
           description: Invalid Argument
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
         "500":
           description: Internal Error
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
       summary: Save widget
       tags:
       - widgets
@@ -305,15 +305,15 @@ paths:
         "400":
           description: Invalid Argument
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
         "500":
           description: Internal Error
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
       summary: Delete widget
       tags:
       - widgets
@@ -334,15 +334,15 @@ paths:
         "400":
           description: Invalid Argument
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
         "500":
           description: Internal Error
           schema:
-            $ref: '#/definitions/server.ErrResponse'
+            $ref: '#/definitions/render.ErrResponse'
       summary: Get widget
       tags:
       - widgets

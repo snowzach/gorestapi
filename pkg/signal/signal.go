@@ -1,13 +1,15 @@
-package conf
+package signal
 
 import (
 	"context"
 	"os"
 	"os/signal"
 	"sync"
-
-	"go.uber.org/zap"
+	"syscall"
 )
+
+//  DefaultStopSignals is the SIGINT and SIGTERM signals
+var DefaultStopSignals = []os.Signal{syscall.SIGINT, syscall.SIGTERM}
 
 type stop struct {
 	// Used to signal when we are done
@@ -18,14 +20,17 @@ type stop struct {
 	sync.WaitGroup
 }
 
-// Stop is the global stop instance
-var Stop = func() *stop {
+// Stop is the global stop instance if you wish to use.
+var Stop = NewStop()
+
+// NewStop creates a new stop instance
+func NewStop() *stop {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &stop{
 		ctx:    ctx,
 		cancel: cancel,
 	}
-}()
+}
 
 // Stop manually triggers stop
 func (s *stop) Stop() {
@@ -47,26 +52,23 @@ func (s *stop) Bool() bool {
 	return s.ctx.Err() != nil
 }
 
-// InitInterrupt sets up stop handler to trigger from interrupt signal
-func (s *stop) InitInterrupt() {
+// OnSignal sets up stop handler to trigger from the specified signals.
+// If signals is not specific/nil it defaults to syscall.SIGINT and syscall.SIGTERM
+func (s *stop) OnSignal(signals ...os.Signal) {
+
+	if len(signals) == 0 {
+		return
+	}
 
 	// Handle signals
 	signalChannel := make(chan os.Signal, 1)
 
-	// Stop flag will indicate if Ctrl-C/Interrupt has been sent to the process
-	signal.Notify(signalChannel, os.Interrupt)
+	// Get notified on signals.
+	signal.Notify(signalChannel, signals...)
 
 	// Handle signals
 	go func() {
-		for {
-			for sig := range signalChannel {
-				switch sig {
-				case os.Interrupt:
-					zap.S().Info("Received Interrupt...")
-					s.cancel()
-					return
-				}
-			}
-		}
+		<-signalChannel
+		s.cancel()
 	}()
 }
