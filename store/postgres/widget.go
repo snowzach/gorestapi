@@ -25,7 +25,7 @@ const (
 	COALESCE(widget.created, '0001-01-01 00:00:00 UTC') as "widget.created",
 	COALESCE(widget.updated, '0001-01-01 00:00:00 UTC') as "widget.updated",
 	COALESCE(widget.name, '') as "widget.name",
-	COALESCE(widget.description, '') as "widget.description"
+	COALESCE(widget.description, '') as "widget.description",
 	COALESCE(widget.thing_id, '') as "widget.thing_id"
 	`
 )
@@ -59,7 +59,7 @@ func (c *Client) WidgetSave(ctx context.Context, record *gorestapi.Widget) error
         INSERT INTO `+ThingSchema+WidgetTable+` (`+fields+`)
         VALUES(`+values+`) ON CONFLICT (id) DO UPDATE
         SET `+updates+` RETURNING *
-	) `+WidgetFields+" FROM "+WidgetTable+WidgetJoins, args...)
+	) `+WidgetSelect+" FROM "+WidgetTable+WidgetJoins, args...)
 	if err != nil {
 		return postgres.WrapError(err)
 	}

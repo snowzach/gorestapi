@@ -28,9 +28,9 @@ func NoContent(w http.ResponseWriter) {
 }
 
 type ErrResponse struct {
-	Status  string `json:"status,omitempty"`
-	Error   string `json:"error,omitempty"`
-	ErrorID string `json:"error_id,omitempty"`
+	Status    string `json:"status,omitempty"`
+	Error     string `json:"error,omitempty"`
+	RequestID string `json:"request_id,omitempty"`
 }
 
 type ErrOption func(er *ErrResponse)
@@ -57,7 +57,7 @@ func WithError(err error) ErrOption {
 
 func WithErrorID(id string) ErrOption {
 	return func(er *ErrResponse) {
-		er.ErrorID = id
+		er.RequestID = id
 	}
 }
 
@@ -69,28 +69,28 @@ func ErrResourceNotFound(w http.ResponseWriter, resource string) {
 	JSON(w, http.StatusNotFound, ErrResponse{Status: resource + " not found", Error: resource + " not found"})
 }
 
-func ErrUnauthorizedWithID(w http.ResponseWriter, id string) {
-	JSON(w, http.StatusUnauthorized, ErrResponse{Status: "not authorized", Error: "not authorized", ErrorID: id})
+func ErrUnauthorizedWithRequestID(w http.ResponseWriter, id string) {
+	JSON(w, http.StatusUnauthorized, ErrResponse{Status: "not authorized", Error: "not authorized", RequestID: id})
 }
 
 func ErrUnauthorized(w http.ResponseWriter) {
-	ErrUnauthorizedWithID(w, "")
+	ErrUnauthorizedWithRequestID(w, "")
 }
 
-func ErrInvalidRequestWithID(w http.ResponseWriter, id string, err error) {
-	JSON(w, http.StatusBadRequest, ErrResponse{Status: "invalid request", Error: errString(err), ErrorID: id})
+func ErrInvalidRequestWithRequestID(w http.ResponseWriter, id string, err error) {
+	JSON(w, http.StatusBadRequest, ErrResponse{Status: "invalid request", Error: errString(err), RequestID: id})
 }
 
 func ErrInvalidRequest(w http.ResponseWriter, err error) {
-	ErrInvalidRequestWithID(w, "", err)
+	ErrInvalidRequestWithRequestID(w, "", err)
 }
 
-func ErrInternalWithID(w http.ResponseWriter, id string, err error) {
-	JSON(w, http.StatusInternalServerError, ErrResponse{Status: "internal error", Error: errString(err), ErrorID: id})
+func ErrInternalWithRequestID(w http.ResponseWriter, id string, err error) {
+	JSON(w, http.StatusInternalServerError, ErrResponse{Status: "internal error", Error: errString(err), RequestID: id})
 }
 
 func ErrInternal(w http.ResponseWriter, err error) {
-	ErrInternalWithID(w, "", err)
+	ErrInternalWithRequestID(w, "", err)
 }
 
 func errString(err error) string {

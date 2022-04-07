@@ -20,5 +20,5 @@ type queryLogger struct {
 }
 
 func (ql *queryLogger) Log(ctx context.Context, level pgx.LogLevel, msg string, data map[string]interface{}) {
-	ql.Printf("%s", msg)
+	ql.Printf("%s: %v", msg, data)
 }

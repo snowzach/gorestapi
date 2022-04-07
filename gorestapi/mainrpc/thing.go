@@ -41,7 +41,7 @@ func (s *Server) ThingSave() http.HandlerFunc {
 				render.ErrInvalidRequest(w, serr.ErrorForOp(store.ErrorOpSave))
 			} else {
 				requestID := middleware.GetReqID(ctx)
-				render.ErrInternalWithID(w, requestID, nil)
+				render.ErrInternalWithRequestID(w, requestID, nil)
 				s.logger.Errorw("ThingSave error", "error", err, "request_id", requestID)
 			}
 			return
@@ -79,7 +79,7 @@ func (s *Server) ThingGetByID() http.HandlerFunc {
 				render.ErrInvalidRequest(w, serr.ErrorForOp(store.ErrorOpGet))
 			} else {
 				requestID := middleware.GetReqID(ctx)
-				render.ErrInternalWithID(w, requestID, nil)
+				render.ErrInternalWithRequestID(w, requestID, nil)
 				s.logger.Errorw("ThingGetByID error", "error", err, "request_id", requestID)
 			}
 			return
@@ -117,7 +117,7 @@ func (s *Server) ThingDeleteByID() http.HandlerFunc {
 				render.ErrInvalidRequest(w, serr.ErrorForOp(store.ErrorOpDelete))
 			} else {
 				requestID := middleware.GetReqID(ctx)
-				render.ErrInternalWithID(w, requestID, nil)
+				render.ErrInternalWithRequestID(w, requestID, nil)
 				s.logger.Errorw("ThingDeleteByID error", "error", err, "request_id", requestID)
 			}
 			return
@@ -161,7 +161,7 @@ func (s *Server) ThingsFind() http.HandlerFunc {
 				render.ErrInvalidRequest(w, serr.ErrorForOp(store.ErrorOpFind))
 			} else {
 				requestID := middleware.GetReqID(ctx)
-				render.ErrInternalWithID(w, requestID, nil)
+				render.ErrInternalWithRequestID(w, requestID, nil)
 				s.logger.Errorw("ThingsFind error", "error", err, "request_id", requestID)
 			}
 			return
