@@ -1,0 +1,335 @@
+_type: export
+__export_format: 4
+__export_date: 2023-08-11T14:02:50.299Z
+__export_source: insomnia.desktop.app:v2023.1.0
+resources:
+  - _id: req_3c936d4a7c354c379ee68c042c52c0fa
+    parentId: fld_b389c8759e0b4d2bb537a5f9389e5caa
+    modified: 1691762291164
+    created: 1675373848534
+    url: "{{ _.base_url }}/api/things"
+    name: GET /api/things
+    description: ""
+    method: GET
+    body:
+      mimeType: application/json
+      text: ""
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1675373848534
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: fld_b389c8759e0b4d2bb537a5f9389e5caa
+    parentId: wrk_b30b21c8133d424ba8c021f7807ed3ee
+    modified: 1691762288830
+    created: 1691762288830
+    name: Things
+    description: ""
+    environment: {}
+    environmentPropertyOrder: null
+    metaSortKey: -1691762288831
+    _type: request_group
+  - _id: wrk_b30b21c8133d424ba8c021f7807ed3ee
+    parentId: null
+    modified: 1675373845729
+    created: 1675373845729
+    name: GoRestAPI
+    description: ""
+    scope: collection
+    _type: workspace
+  - _id: req_f58a987b48434c02a8342ad508ee3870
+    parentId: fld_b389c8759e0b4d2bb537a5f9389e5caa
+    modified: 1691762292835
+    created: 1691761384939
+    url: "{{ _.base_url }}/api/things/cjaqdgm8fv0a259ek4rg"
+    name: GET /api/things/<id>
+    description: ""
+    method: GET
+    body:
+      mimeType: application/json
+      text: ""
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1675373848484
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_c2360009daee4b11b84268968d210510
+    parentId: fld_b389c8759e0b4d2bb537a5f9389e5caa
+    modified: 1691762294274
+    created: 1691761260024
+    url: "{{ _.base_url }}/api/things"
+    name: POST /api/things
+    description: ""
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"name": "Thing1",
+        	"description": "Thing1 Description"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1675373848434
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_0a086066d7ce437fa57fa6cf13f3ff53
+    parentId: fld_b389c8759e0b4d2bb537a5f9389e5caa
+    modified: 1691762295715
+    created: 1691761294181
+    url: "{{ _.base_url }}/api/things"
+    name: POST /api/things (update)
+    description: ""
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"id": "cjaqdgm8fv0a259ek4rg",
+        	"name": "Thing1",
+        	"description": "Thing1 Description"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1675373848384
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_391839fba4184610861607feebd23b84
+    parentId: fld_b389c8759e0b4d2bb537a5f9389e5caa
+    modified: 1691762297464
+    created: 1691761319699
+    url: "{{ _.base_url }}/api/things/cjb3kim8fv0e9kr814d0"
+    name: DELETE /api/things/<id>
+    description: ""
+    method: DELETE
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"id": "cjaqdgm8fv0a259ek4rg",
+        	"name": "Thing1",
+        	"description": "Thing1 Description"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1675373848334
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_6bc39db3a9c54049a5fd1d93625d7798
+    parentId: fld_0b9872b188274666949a9d707724f0d3
+    modified: 1691762319170
+    created: 1691761356613
+    url: "{{ _.base_url }}/api/widgets"
+    name: GET /api/widgets
+    description: ""
+    method: GET
+    body:
+      mimeType: application/json
+      text: ""
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1660833432646.5625
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: fld_0b9872b188274666949a9d707724f0d3
+    parentId: wrk_b30b21c8133d424ba8c021f7807ed3ee
+    modified: 1691762314762
+    created: 1691762303961
+    name: Widgets
+    description: ""
+    environment: {}
+    environmentPropertyOrder: null
+    metaSortKey: -1660951647409.875
+    _type: request_group
+  - _id: req_2d318339585840da8ee79b5788bf5954
+    parentId: fld_0b9872b188274666949a9d707724f0d3
+    modified: 1691762320678
+    created: 1691761708833
+    url: "{{ _.base_url }}/api/widgets/cjaqev68fv0amf6hjvpg"
+    name: GET /api/widgets/<id>
+    description: ""
+    method: GET
+    body:
+      mimeType: application/json
+      text: ""
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1660833432596.5625
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_27f09c2e27b54635b7717586f11b2295
+    parentId: fld_0b9872b188274666949a9d707724f0d3
+    modified: 1691762322017
+    created: 1691761725147
+    url: "{{ _.base_url }}/api/widgets"
+    name: POST /api/widgets
+    description: ""
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"name": "Widget2",
+        	"description": "Widget2 Description3"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1660833432546.5625
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_446edc5156fb4df2960de5015f478888
+    parentId: fld_0b9872b188274666949a9d707724f0d3
+    modified: 1691762323252
+    created: 1691762022205
+    url: "{{ _.base_url }}/api/widgets"
+    name: POST /api/widgets (update)
+    description: ""
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"id": "cjb3qvm8fv08drou14l0",
+        	"name": "Widget2 Updated",
+        	"description": "Widget2 Description Updated"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1660833432496.5625
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_0c57600f3add40c984df504039a05318
+    parentId: fld_0b9872b188274666949a9d707724f0d3
+    modified: 1691762324570
+    created: 1691762201175
+    url: "{{ _.base_url }}/api/widgets/cjb3qvm8fv08drou14l0"
+    name: DELETE /api/widgets/<id>
+    description: ""
+    method: DELETE
+    body:
+      mimeType: application/json
+      text: ""
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1660833432446.5625
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: env_8bb83d7a8c298625d88d3598fd3320994f705a5a
+    parentId: wrk_b30b21c8133d424ba8c021f7807ed3ee
+    modified: 1691761197405
+    created: 1675373845732
+    name: Base Environment
+    data:
+      base_url: http://localhost:8080
+    dataPropertyOrder:
+      "&":
+        - base_url
+    color: null
+    isPrivate: false
+    metaSortKey: 1675373845732
+    _type: environment
+  - _id: jar_8bb83d7a8c298625d88d3598fd3320994f705a5a
+    parentId: wrk_b30b21c8133d424ba8c021f7807ed3ee
+    modified: 1675373845733
+    created: 1675373845733
+    name: Default Jar
+    cookies: []
+    _type: cookie_jar
+  - _id: spc_847d73816244482e9e354ac2d73d50ca
+    parentId: wrk_b30b21c8133d424ba8c021f7807ed3ee
+    modified: 1675373845729
+    created: 1675373845729
+    fileName: GoRestAPI
+    contents: ""
+    contentType: yaml
+    _type: api_spec

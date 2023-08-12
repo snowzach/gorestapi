@@ -5,7 +5,7 @@ import (
 	"io/fs"
 
 	"github.com/golang-migrate/migrate/v4/source"
-	"github.com/johejo/golang-migrate-extra/source/iofs"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
 //go:embed postgres_migrations

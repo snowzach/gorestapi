@@ -21,8 +21,14 @@
         "/things": {
             "get": {
                 "description": "Find things",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
-                    "things"
+                    "Things"
                 ],
                 "summary": "Find things",
                 "operationId": "ThingsFind",
@@ -90,8 +96,14 @@
             },
             "post": {
                 "description": "Save a thing",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
-                    "things"
+                    "Things"
                 ],
                 "summary": "Save thing",
                 "operationId": "ThingSave",
@@ -131,8 +143,14 @@
         "/things/{id}": {
             "get": {
                 "description": "Get a thing",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
-                    "things"
+                    "Things"
                 ],
                 "summary": "Get thing",
                 "operationId": "ThingGetByID",
@@ -174,8 +192,14 @@
             },
             "delete": {
                 "description": "Delete a thing",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
-                    "things"
+                    "Things"
                 ],
                 "summary": "Delete thing",
                 "operationId": "ThingDeleteByID",
@@ -216,8 +240,14 @@
         "/widgets": {
             "get": {
                 "description": "Find widgets",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
-                    "widgets"
+                    "Widgets"
                 ],
                 "summary": "Find widgets",
                 "operationId": "WidgetsFind",
@@ -285,8 +315,14 @@
             },
             "post": {
                 "description": "Save a widget",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
-                    "widgets"
+                    "Widgets"
                 ],
                 "summary": "Save widget",
                 "operationId": "WidgetSave",
@@ -326,8 +362,14 @@
         "/widgets/{id}": {
             "get": {
                 "description": "Get a widget",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
-                    "widgets"
+                    "Widgets"
                 ],
                 "summary": "Get widget",
                 "operationId": "WidgetGetByID",
@@ -369,8 +411,14 @@
             },
             "delete": {
                 "description": "Delete a widget",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
-                    "widgets"
+                    "Widgets"
                 ],
                 "summary": "Delete widget",
                 "operationId": "WidgetDeleteByID",
@@ -469,7 +517,11 @@
                 },
                 "thing": {
                     "description": "Loaded Structs",
-                    "$ref": "#/definitions/gorestapi.Thing"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gorestapi.Thing"
+                        }
+                    ]
                 },
                 "thing_id": {
                     "description": "ThingID",
@@ -505,6 +557,9 @@
                     "type": "string"
                 },
                 "error_id": {
+                    "type": "string"
+                },
+                "request_id": {
                     "type": "string"
                 },
                 "status": {

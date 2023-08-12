@@ -7,17 +7,19 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/snowzach/queryp"
 
+	"github.com/snowzach/golib/httpserver/render"
+	"github.com/snowzach/golib/store"
 	"github.com/snowzach/gorestapi/gorestapi"
-	"github.com/snowzach/gorestapi/pkg/server/render"
-	"github.com/snowzach/gorestapi/store"
 )
 
 // ThingSave saves a thing
 //
 // @ID ThingSave
-// @Tags things
+// @Tags Things
 // @Summary Save thing
 // @Description Save a thing
+// @Accept   json
+// @Produce  json
 // @Param thing body gorestapi.ThingExample true "Thing"
 // @Success 200 {object} gorestapi.Thing
 // @Failure 400 {object} render.ErrResponse "Invalid Argument"
@@ -41,7 +43,7 @@ func (s *Server) ThingSave() http.HandlerFunc {
 				render.ErrInvalidRequest(w, serr.ErrorForOp(store.ErrorOpSave))
 			} else {
 				requestID := middleware.GetReqID(ctx)
-				render.ErrInternalWithRequestID(w, requestID, nil)
+				render.ErrInternalWithID(w, requestID, nil)
 				s.logger.Errorw("ThingSave error", "error", err, "request_id", requestID)
 			}
 			return
@@ -55,10 +57,12 @@ func (s *Server) ThingSave() http.HandlerFunc {
 // ThingGetByID saves a thing
 //
 // @ID ThingGetByID
-// @Tags things
+// @Tags Things
 // @Summary Get thing
 // @Description Get a thing
 // @Param id path string true "ID"
+// @Accept   json
+// @Produce  json
 // @Success 200 {object} gorestapi.Thing
 // @Failure 400 {object} render.ErrResponse "Invalid Argument"
 // @Failure 404 {object} render.ErrResponse "Not Found"
@@ -79,7 +83,7 @@ func (s *Server) ThingGetByID() http.HandlerFunc {
 				render.ErrInvalidRequest(w, serr.ErrorForOp(store.ErrorOpGet))
 			} else {
 				requestID := middleware.GetReqID(ctx)
-				render.ErrInternalWithRequestID(w, requestID, nil)
+				render.ErrInternalWithID(w, requestID, nil)
 				s.logger.Errorw("ThingGetByID error", "error", err, "request_id", requestID)
 			}
 			return
@@ -93,9 +97,11 @@ func (s *Server) ThingGetByID() http.HandlerFunc {
 // ThingDeleteByID saves a thing
 //
 // @ID ThingDeleteByID
-// @Tags things
+// @Tags Things
 // @Summary Delete thing
 // @Description Delete a thing
+// @Accept   json
+// @Produce  json
 // @Param id path string true "ID"
 // @Success 204 "Success"
 // @Failure 400 {object} render.ErrResponse "Invalid Argument"
@@ -117,7 +123,7 @@ func (s *Server) ThingDeleteByID() http.HandlerFunc {
 				render.ErrInvalidRequest(w, serr.ErrorForOp(store.ErrorOpDelete))
 			} else {
 				requestID := middleware.GetReqID(ctx)
-				render.ErrInternalWithRequestID(w, requestID, nil)
+				render.ErrInternalWithID(w, requestID, nil)
 				s.logger.Errorw("ThingDeleteByID error", "error", err, "request_id", requestID)
 			}
 			return
@@ -132,9 +138,11 @@ func (s *Server) ThingDeleteByID() http.HandlerFunc {
 // ThingsFind saves a thing
 //
 // @ID ThingsFind
-// @Tags things
+// @Tags Things
 // @Summary Find things
 // @Description Find things
+// @Accept   json
+// @Produce  json
 // @Param id query string false "id"
 // @Param name query string false "name"
 // @Param description query string false "description"
@@ -153,6 +161,7 @@ func (s *Server) ThingsFind() http.HandlerFunc {
 		qp, err := queryp.ParseRawQuery(r.URL.RawQuery)
 		if err != nil {
 			render.ErrInvalidRequest(w, err)
+			return
 		}
 
 		things, count, err := s.grStore.ThingsFind(ctx, qp)
@@ -161,7 +170,7 @@ func (s *Server) ThingsFind() http.HandlerFunc {
 				render.ErrInvalidRequest(w, serr.ErrorForOp(store.ErrorOpFind))
 			} else {
 				requestID := middleware.GetReqID(ctx)
-				render.ErrInternalWithRequestID(w, requestID, nil)
+				render.ErrInternalWithID(w, requestID, nil)
 				s.logger.Errorw("ThingsFind error", "error", err, "request_id", requestID)
 			}
 			return

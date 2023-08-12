@@ -1,4 +1,4 @@
-EXECUTABLE := gorestapicmd
+EXECUTABLE := gorestapi
 GITVERSION := $(shell git describe --dirty --always --tags --long)
 GOPATH ?= ${HOME}/go
 PACKAGENAME := $(shell go list -m -f '{{.Path}}')
@@ -20,34 +20,27 @@ ${GOPATH}/bin/swag:
 
 .PHONY: swagger
 swagger: tools ${SWAGGERSOURCE}
-	swag init --dir . --generalInfo gorestapi/swagger.go --exclude embed --output embed/public_html/api-docs
+	swag init --dir . --parseDependency --parseDepth 1 --generalInfo gorestapi/swagger.go --exclude embed --output embed/public_html/api-docs
 	rm embed/public_html/api-docs/docs.go
+	rm embed/public_html/api-docs/swagger.yaml
 	
-embed/public_html/api-docs/swagger.json: tools ${SWAGGERSOURCE}
-	swag init --dir . --generalInfo gorestapi/swagger.go --exclude embed --output embed/public_html/api-docs
-	rm embed/public_html/api-docs/docs.go
+.PHONY: ${EXECUTABLE}
+${EXECUTABLE}: tools swagger
+	# Compiling...
+	mkdir -p build
+	go build -ldflags "-X github.com/snowzach/golib/version.Executable=${EXECUTABLE} -X github.com/snowzach/golib/version.GitVersion=${GITVERSION}" -o build/${EXECUTABLE}
 
 .PHONY: mocks
 mocks: tools
-	mockery -dir ./gorestapi -name GRStore
-
-.PHONY: ${EXECUTABLE}
-${EXECUTABLE}: tools embed/public_html/api-docs/swagger.json
-	# Compiling...
-	go build -ldflags "-X ${PACKAGENAME}/conf.Executable=${EXECUTABLE} -X ${PACKAGENAME}/conf.GitVersion=${GITVERSION}" -o ${EXECUTABLE}
+	mockery --dir ./gorestapi --name GRStore 
 
 .PHONY: test
 test: tools mocks
 	go test -cover ./...
 
-.PHONY: deps
-deps:
-	# Fetching dependancies...
-	go get -d -v # Adding -u here will break CI
-
 .PHONY: lint
 lint:
-	docker run --rm -v ${PWD}:/app -w /app golangci/golangci-lint:v1.27.0 golangci-lint run -v --timeout 5m
+	docker run --rm -v ${PWD}:/app -w /app golangci/golangci-lint:v1.54.0 golangci-lint run -v --timeout 5m
 
 .PHONY: hadolint
 hadolint:

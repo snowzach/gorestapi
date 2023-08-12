@@ -1,0 +1,52 @@
+name: Test
+
+on: 
+  push:
+    branches:
+      - "*" # All branches
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  CGO_ENABLED: 0
+
+jobs:
+  lint:
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+          cache: false
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.54
+
+  dockerfile-lint:
+    runs-on: [ubuntu-latest]
+    container:
+      image: hadolint/hadolint:latest-alpine
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Lint Dockerfile
+        run: hadolint --ignore DL3008 --ignore DL3018 Dockerfile
+
+  test:
+    runs-on: [ubuntu-latest]
+    container:
+      image: public.ecr.aws/docker/library/golang:1.21-alpine
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install tools
+        run: apk --no-cache --update add openssh-client git make
+
+      - name: Run tests
+        run: make test

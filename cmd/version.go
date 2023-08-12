@@ -5,7 +5,7 @@ import (
 
 	cli "github.com/spf13/cobra"
 
-	"github.com/snowzach/gorestapi/pkg/version"
+	"github.com/snowzach/golib/version"
 )
 
 // Version command

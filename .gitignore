@@ -1,7 +1,6 @@
 .vscode
-gorestapicmd
-mocks
 bindata.go
 server.crt
 server.key
 local.sh
+build

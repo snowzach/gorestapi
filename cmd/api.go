@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -10,15 +11,15 @@ import (
 	cli "github.com/spf13/cobra"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/snowzach/golib/conf"
+	"github.com/snowzach/golib/httpserver"
+	"github.com/snowzach/golib/httpserver/logger"
+	"github.com/snowzach/golib/httpserver/metrics"
+	"github.com/snowzach/golib/log"
+	"github.com/snowzach/golib/signal"
+	"github.com/snowzach/golib/version"
 	"github.com/snowzach/gorestapi/embed"
 	"github.com/snowzach/gorestapi/gorestapi/mainrpc"
-	"github.com/snowzach/gorestapi/pkg/conf"
-	"github.com/snowzach/gorestapi/pkg/log"
-	"github.com/snowzach/gorestapi/pkg/server"
-	"github.com/snowzach/gorestapi/pkg/server/logger"
-	"github.com/snowzach/gorestapi/pkg/server/metrics"
-	"github.com/snowzach/gorestapi/pkg/signal"
-	"github.com/snowzach/gorestapi/pkg/version"
 	"github.com/snowzach/gorestapi/store/postgres"
 )
 
@@ -50,17 +51,33 @@ var (
 			// Version endpoint
 			router.Get("/version", version.GetVersion())
 
-			// ThingRPC
+			// MainRPC
 			if err = mainrpc.Setup(router, db); err != nil {
 				log.Fatalf("Could not setup mainrpc: %v", err)
 			}
 
-			// Serve api-docs and swagger-ui
-			docsFileServer := http.FileServer(http.FS(embed.PublicHTMLFS()))
+			// Serve embedded public html
+			htmlFilesFS := embed.PublicHTMLFS()
+			htmlFilesServer := http.FileServer(http.FS(htmlFilesFS))
+			// Serve swagger docs
 			router.Mount("/api-docs", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Vary", "Accept-Encoding")
 				w.Header().Set("Cache-Control", "no-cache")
-				docsFileServer.ServeHTTP(w, r)
+				htmlFilesServer.ServeHTTP(w, r)
+			}))
+			// Serve embedded webapp
+			router.Mount("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// See if the file exists
+				file, err := htmlFilesFS.Open(strings.TrimLeft(r.URL.Path, "/"))
+				if err != nil {
+					// If the file is not found, serve the root index.html file
+					r.URL.Path = "/"
+				} else {
+					file.Close()
+				}
+				w.Header().Set("Vary", "Accept-Encoding")
+				w.Header().Set("Cache-Control", "no-cache")
+				htmlFilesServer.ServeHTTP(w, r)
 			}))
 
 			// Create a server
@@ -140,18 +157,18 @@ func newRouter() (chi.Router, error) {
 
 }
 
-func newServer(handler http.Handler) (*server.Server, error) {
+func newServer(handler http.Handler) (*httpserver.Server, error) {
 
 	// Parse the config
-	var serverConfig = &server.Config{Handler: handler}
+	var serverConfig = &httpserver.Config{Handler: handler}
 	if err := conf.C.Unmarshal(serverConfig, conf.UnmarshalConf{Path: "server"}); err != nil {
-		fmt.Errorf("could not parse server config: %v", err)
+		return nil, fmt.Errorf("could not parse server config: %w", err)
 	}
 
 	// Create the server
-	s, err := server.New(serverConfig)
+	s, err := httpserver.New(httpserver.WithConfig(serverConfig))
 	if err != nil {
-		fmt.Errorf("could not create server: %v", err)
+		return nil, fmt.Errorf("could not create server: %w", err)
 	}
 
 	return s, nil
@@ -169,12 +186,10 @@ func newDatabase() (*postgres.Client, error) {
 	}
 
 	// Loggers
-	postgresConfig.Logger = log.NewWrapper(log.Base.Named("store.postgres"), zapcore.InfoLevel)
-	postgresConfig.QueryLogger = log.NewWrapper(log.Base.Named("store.postgres.query"), zapcore.DebugLevel)
-
-	// if conf.C.Bool("store.postgres.log_queries") {
-	// 	postgresConfig.QueryLogger = log.NewWrapper(log.Base.Named("store.postgres.query"), zapcore.DebugLevel)
-	// }
+	postgresConfig.Logger = log.NewWrapper(log.Logger.Named("database.postgres").Desugar(), zapcore.InfoLevel)
+	if conf.C.Bool("database.log_queries") {
+		postgresConfig.QueryLogger = log.NewWrapper(log.Logger.Named("database.postgres.query").Desugar(), zapcore.DebugLevel)
+	}
 
 	// Migrations
 	postgresConfig.MigrationSource, err = embed.MigrationSource()
