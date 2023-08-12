@@ -1,5 +1,4 @@
 .vscode
-mocks
 bindata.go
 server.crt
 server.key
