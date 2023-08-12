@@ -5,8 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/xid"
-
-	"github.com/snowzach/gorestapi/store/driver/postgres"
+	"github.com/snowzach/golib/store/driver/postgres"
 )
 
 type Config struct {

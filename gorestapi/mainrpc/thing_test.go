@@ -7,12 +7,12 @@ import (
 
 	"github.com/gavv/httpexpect/v2"
 	"github.com/go-chi/chi/v5"
+	"github.com/snowzach/golib/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/snowzach/gorestapi/gorestapi"
 	"github.com/snowzach/gorestapi/mocks"
-	"github.com/snowzach/gorestapi/store"
 )
 
 func TestThingPost(t *testing.T) {
@@ -68,13 +68,14 @@ func TestThingsFind(t *testing.T) {
 			Name: "name2",
 		},
 	}
+	var count int64 = 2
 
 	// Mock call to item store
-	grs.On("ThingsFind", mock.Anything, mock.AnythingOfType("*queryp.QueryParameters")).Once().Return(i, int64(2), nil)
+	grs.On("ThingsFind", mock.Anything, mock.AnythingOfType("*queryp.QueryParameters")).Once().Return(i, &count, nil)
 
 	// Make request and validate we get back proper response
 	e := httpexpect.New(t, server.URL)
-	e.GET("/api/things").Expect().Status(http.StatusOK).JSON().Object().Equal(&store.Results{Count: 2, Results: i})
+	e.GET("/api/things").Expect().Status(http.StatusOK).JSON().Object().Equal(&store.Results{Count: &count, Results: i})
 
 	// Check remaining expectations
 	grs.AssertExpectations(t)

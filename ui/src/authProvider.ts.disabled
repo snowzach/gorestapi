@@ -1,0 +1,154 @@
+import { AuthProvider } from "react-admin";
+import { UserManager } from "oidc-client-ts";
+import decodeJwt from 'jwt-decode';
+
+export const authProvider: AuthProvider = {
+  login: async (config) => {
+    const userManager = new UserManager({
+      authority: config.auth_issuer as string,
+      client_id: config.auth_client_id as string,
+      redirect_uri: config.auth_redirect_url as string,
+      response_type: "code",
+      scope: config.auth_scopes as string,
+    });
+
+    // 1. Redirect to the issuer to ask authentication
+    await userManager.signinRedirect();
+    return; // Do not return anything, the login is still loading
+  },
+  logout: () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem('permissions');
+    return Promise.resolve();
+  },
+  checkError: (error) => {
+    const status = error.status;
+    if (status === 401 ) {
+      // Not authenticated or token expired
+      localStorage.removeItem('token');
+      localStorage.removeItem('permissions');
+      return Promise.reject();
+    }
+    // other error code (404, 500, etc): no need to log out
+    return Promise.resolve();
+  },
+  checkAuth: () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return Promise.reject();
+    }
+    // Check the token validity
+    const jwt = parseToken(token);
+    const now = new Date();
+    return now.getTime() > jwt.exp * 1000
+      ? Promise.reject()
+      : Promise.resolve();
+  },
+  getPermissions: () => {
+    const persmissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+    return persmissions ? Promise.resolve(persmissions) : Promise.reject();
+  },
+  getIdentity: () => {
+    const token = window.localStorage.getItem("token");
+    const jwt = parseToken(token);
+
+    return Promise.resolve({
+      id: jwt.sub,
+      fullName: jwt.name,
+      avatar: undefined,
+    });
+  },
+  handleCallback: async () => {
+
+    // We came back from the issuer with ?code infos in query params
+    const { searchParams } = new URL(window.location.href);
+    const code = searchParams.get("code");
+    const state = searchParams.get("state");
+
+    // oidc-client uses localStorage to keep a temporary state
+    // between the two redirections. But since we need to send it to the API
+    // we have to retrieve it manually
+    const stateKey = `oidc.${state}`;
+    const { code_verifier } = JSON.parse(
+      localStorage.getItem(stateKey) || "{}"
+    );
+
+    // Transform the code to a token via the API
+    const response = await fetch(`/api/portal/token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: code, code_verifier }),
+    });
+
+    if (!response.ok) {
+      cleanup();
+      throw new Error('Failed to handle login callback. You likely do not have access.');
+    }
+
+    // Decode the get token response
+    const token = await response.json();
+    if (!token.token_type || token.token_type !== "Bearer" || !token.access_token) { 
+      cleanup();
+      throw new Error('Malformed token response.');
+    }
+
+    localStorage.setItem("token", token.access_token)
+
+    // Decode the JWT token to get the user permissions
+    const decodedToken = parseToken(token.access_token);
+    localStorage.setItem("permissions", JSON.stringify(decodedToken.permissions));
+
+    // userManager.clearStaleState();
+    cleanup();
+    return Promise.resolve();
+  },
+};
+
+export default authProvider;
+
+export const noAuthProvider = {
+  // send username and password to the auth server and get back credentials
+  login: () => Promise.resolve(),
+  // when the dataProvider returns an error, check if this is an authentication error
+  checkError: () => Promise.resolve(),
+  // when the user navigates, make sure that their credentials are still valid
+  checkAuth: () => Promise.resolve(),
+  // remove local credentials and notify the auth server that the user logged out
+  logout: () => Promise.resolve(),
+  // get the user's profile
+  getIdentity: () => Promise.resolve({
+    id: 'unknown',
+    fullName: 'unknown',
+    avatar: undefined,
+  }),
+  // get the user permissions (optional)
+  getPermissions: () => Promise.resolve(['reserve_admin','user_admin','finops']),
+};
+
+const cleanup = () => {
+  // Remove the ?code&state from the URL
+  window.history.replaceState(
+    {},
+    window.document.title,
+    window.location.origin
+  );
+};
+
+type JWT = {
+  sub: string;
+  exp: number;
+  name: string;
+  permissions: string[];
+}
+
+const parseToken = (tokenJson: string | null): JWT => {
+  const unknownUser = <JWT>{
+    sub: 'unknown',
+    exp: 0,
+    name: 'unknown',
+    permissions: [],
+  }
+  if (tokenJson == null) return unknownUser;
+  const token = decodeJwt(tokenJson) as JWT;
+  return token || unknownUser;
+}

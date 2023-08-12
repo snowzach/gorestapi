@@ -1,0 +1,59 @@
+name: Test
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  CGO_ENABLED: 0
+
+jobs:
+  lint:
+    runs-on: [self-hosted, ec2, linux]
+    container:
+      image: golangci/golangci-lint:v1.54.1
+    steps:
+      - uses: actions/checkout@v3
+
+      # - uses: webfactory/ssh-agent@v0.7.0
+      #   with:
+      #     ssh-private-key: <SSH KEY FOR PRIVATE REPO>
+
+      # - name: Force github.com access via ssh
+      #   run: git config --global url."ssh://git@github.com".insteadOf https://github.com
+      
+      - name: Install deps
+        run: go get -d
+          
+      - name: Run golangci-lint
+        run: golangci-lint run -v --timeout 5m
+
+  dockerfile-lint:
+    runs-on: [self-hosted, ec2, linux]
+    container:
+      image: hadolint/hadolint:latest-alpine
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Lint Dockerfile
+        run: hadolint --ignore DL3008 --ignore DL3018 Dockerfile
+
+  test:
+    runs-on: [self-hosted, ec2, linux]
+    container:
+      image: public.ecr.aws/docker/library/golang:1.21-alpine
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install tools
+        run: apk --no-cache --update add openssh-client git make
+
+      # - uses: webfactory/ssh-agent@v0.7.0
+      #   with:
+      #     ssh-private-key: <SSH KEY FOR PRIVATE REPO>
+
+      # - name: Force github.com access via ssh
+      #   run: git config --global url."ssh://git@github.com".insteadOf https://github.com
+      
+      - name: Run tests
+        run: make test

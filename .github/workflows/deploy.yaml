@@ -1,0 +1,75 @@
+name: Build
+
+on: 
+  push:
+    tags:
+      - 'v*.*.*'
+    branches:
+      - nextgen2023
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  REPO_NAME: docker.io/snowzach/gorestapi
+  CGO_ENABLED: 0
+
+jobs:
+  build:
+    runs-on: [self-hosted, ec2, linux]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Environment
+        id: setup-environment
+        run: |
+          TAG_SHA_SHORT=$(git rev-parse --short HEAD)
+          echo "FULL_REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
+          echo "TAG_SHA_SHORT=${TAG_SHA_SHORT}" >> $GITHUB_ENV
+
+          EXTRA_TAGS="" # Add any extra tags you want to this variable (space delimited)
+
+          # Version tag
+          if [[ "${{ github.ref_name }}" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+$) ]]; then
+            EXTRA_TAGS+="${BASH_REMATCH[1]} "
+          fi
+
+          echo "EXTRA_TAGS=$EXTRA_TAGS" >> $GITHUB_ENV
+
+      - name: Build Image
+        id: build-image
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          echo "Building image: ${{ env.FULL_REPO_NAME }}:${{ env.TAG_SHA_SHORT }}"
+          docker build \
+            -t "${{ env.FULL_REPO_NAME }}:${{ env.TAG_SHA_SHORT }}" \
+            --build-arg SSH_PRIVATE_KEY="$SSH_PRIVATE_KEY" .
+
+          for tag in ${{ env.EXTRA_TAGS }}; do
+            echo "Adding extra tag: ${{ env.FULL_REPO_NAME }}:$tag"
+            docker tag "${{ env.FULL_REPO_NAME }}:${{ env.TAG_SHA_SHORT }}" "${{ env.FULL_REPO_NAME }}:$tag"
+          done
+
+      - name: Push To repository
+        run: |
+          echo "Pushing tag: ${{ env.FULL_REPO_NAME }}:${{ env.TAG_SHA_SHORT }}"
+          docker push "${{ env.FULL_REPO_NAME }}:${{ env.TAG_SHA_SHORT }}"
+
+          for tag in ${{ env.EXTRA_TAGS }}; do
+            echo "Pushing extra tag: ${{ env.FULL_REPO_NAME }}:$tag"
+            docker push "${{ env.FULL_REPO_NAME }}:$tag"
+          done
+
+      - name: Remove Build Images From Runner
+        if: always()
+        run: |
+          echo "Cleaning tag: ${{ env.FULL_REPO_NAME }}:${{ env.TAG_SHA_SHORT }}"
+          docker image rm "${{ env.FULL_REPO_NAME }}:${{ env.TAG_SHA_SHORT }}"
+
+          for tag in ${{ env.EXTRA_TAGS }}; do
+            echo "Cleaning extra tag: ${{ env.FULL_REPO_NAME }}:$tag"
+            docker image rm "${{ env.FULL_REPO_NAME }}:$tag"
+          done
+

@@ -7,17 +7,19 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/snowzach/queryp"
 
+	"github.com/snowzach/golib/httpserver/render"
+	"github.com/snowzach/golib/store"
 	"github.com/snowzach/gorestapi/gorestapi"
-	"github.com/snowzach/gorestapi/pkg/server/render"
-	"github.com/snowzach/gorestapi/store"
 )
 
 // WidgetSave saves a widget
 //
 // @ID WidgetSave
-// @Tags widgets
+// @Tags Widgets
 // @Summary Save widget
 // @Description Save a widget
+// @Accept   json
+// @Produce  json
 // @Param widget body gorestapi.WidgetExample true "Widget"
 // @Success 200 {object} gorestapi.Widget
 // @Failure 400 {object} render.ErrResponse "Invalid Argument"
@@ -41,7 +43,7 @@ func (s *Server) WidgetSave() http.HandlerFunc {
 				render.ErrInvalidRequest(w, serr.ErrorForOp(store.ErrorOpSave))
 			} else {
 				requestID := middleware.GetReqID(ctx)
-				render.ErrInternalWithRequestID(w, requestID, nil)
+				render.ErrInternalWithID(w, requestID, nil)
 				s.logger.Errorw("WidgetSave error", "error", err, "request_id", requestID)
 			}
 			return
@@ -55,9 +57,11 @@ func (s *Server) WidgetSave() http.HandlerFunc {
 // WidgetGetByID saves a widget
 //
 // @ID WidgetGetByID
-// @Tags widgets
+// @Tags Widgets
 // @Summary Get widget
 // @Description Get a widget
+// @Accept   json
+// @Produce  json
 // @Param id path string true "ID"
 // @Success 200 {object} gorestapi.Widget
 // @Failure 400 {object} render.ErrResponse "Invalid Argument"
@@ -79,7 +83,7 @@ func (s *Server) WidgetGetByID() http.HandlerFunc {
 				render.ErrInvalidRequest(w, serr.ErrorForOp(store.ErrorOpGet))
 			} else {
 				requestID := middleware.GetReqID(ctx)
-				render.ErrInternalWithRequestID(w, requestID, nil)
+				render.ErrInternalWithID(w, requestID, nil)
 				s.logger.Errorw("WidgetGetByID error", "error", err, "request_id", requestID)
 			}
 			return
@@ -92,9 +96,11 @@ func (s *Server) WidgetGetByID() http.HandlerFunc {
 // WidgetDeleteByID saves a widget
 //
 // @ID WidgetDeleteByID
-// @Tags widgets
+// @Tags Widgets
 // @Summary Delete widget
 // @Description Delete a widget
+// @Accept   json
+// @Produce  json
 // @Param id path string true "ID"
 // @Success 204 "Success"
 // @Failure 400 {object} render.ErrResponse "Invalid Argument"
@@ -116,7 +122,7 @@ func (s *Server) WidgetDeleteByID() http.HandlerFunc {
 				render.ErrInvalidRequest(w, serr.ErrorForOp(store.ErrorOpDelete))
 			} else {
 				requestID := middleware.GetReqID(ctx)
-				render.ErrInternalWithRequestID(w, requestID, nil)
+				render.ErrInternalWithID(w, requestID, nil)
 				s.logger.Errorw("WidgetDeleteByID error", "error", err, "request_id", requestID)
 			}
 			return
@@ -129,9 +135,11 @@ func (s *Server) WidgetDeleteByID() http.HandlerFunc {
 // WidgetsFind saves a widget
 //
 // @ID WidgetsFind
-// @Tags widgets
+// @Tags Widgets
 // @Summary Find widgets
 // @Description Find widgets
+// @Accept   json
+// @Produce  json
 // @Param id query string false "id"
 // @Param name query string false "name"
 // @Param description query string false "description"
@@ -150,6 +158,7 @@ func (s *Server) WidgetsFind() http.HandlerFunc {
 		qp, err := queryp.ParseRawQuery(r.URL.RawQuery)
 		if err != nil {
 			render.ErrInvalidRequest(w, err)
+			return
 		}
 
 		widgets, count, err := s.grStore.WidgetsFind(ctx, qp)
@@ -158,7 +167,7 @@ func (s *Server) WidgetsFind() http.HandlerFunc {
 				render.ErrInvalidRequest(w, serr.ErrorForOp(store.ErrorOpFind))
 			} else {
 				requestID := middleware.GetReqID(ctx)
-				render.ErrInternalWithRequestID(w, requestID, nil)
+				render.ErrInternalWithID(w, requestID, nil)
 				s.logger.Errorw("WidgetsFind error", "error", err, "request_id", requestID)
 			}
 			return

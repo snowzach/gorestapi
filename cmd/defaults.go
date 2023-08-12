@@ -46,11 +46,12 @@ func defaults() map[string]interface{} {
 
 		// Database Settings
 		"database.username":              "postgres",
-		"database.password":              "password",
+		"database.password":              "postgres",
 		"database.host":                  "postgres",
 		"database.port":                  5432,
 		"database.database":              "gorestapi",
 		"database.auto_create":           true,
+		"database.schema":                "public",
 		"database.search_path":           "",
 		"database.sslmode":               "disable",
 		"database.sslcert":               "",

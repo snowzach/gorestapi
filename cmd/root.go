@@ -10,9 +10,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	cli "github.com/spf13/cobra"
 
-	"github.com/snowzach/gorestapi/pkg/conf"
-	"github.com/snowzach/gorestapi/pkg/log"
-	"github.com/snowzach/gorestapi/pkg/version"
+	"github.com/snowzach/golib/conf"
+	"github.com/snowzach/golib/log"
+	"github.com/snowzach/golib/version"
 )
 
 func init() {
