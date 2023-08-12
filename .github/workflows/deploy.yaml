@@ -17,7 +17,7 @@ env:
 
 jobs:
   build:
-    runs-on: [self-hosted, ec2, linux]
+    runs-on: [linux]
     steps:
       - uses: actions/checkout@v3
 

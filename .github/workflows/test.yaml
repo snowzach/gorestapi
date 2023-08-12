@@ -14,7 +14,7 @@ env:
 
 jobs:
   lint:
-    runs-on: [self-hosted, ec2, linux]
+    runs-on: [linux]
     container:
       image: golangci/golangci-lint:v1.54.1
     steps:
@@ -34,7 +34,7 @@ jobs:
         run: golangci-lint run -v --timeout 5m
 
   dockerfile-lint:
-    runs-on: [self-hosted, ec2, linux]
+    runs-on: [linux]
     container:
       image: hadolint/hadolint:latest-alpine
     steps:
@@ -44,7 +44,7 @@ jobs:
         run: hadolint --ignore DL3008 --ignore DL3018 Dockerfile
 
   test:
-    runs-on: [self-hosted, ec2, linux]
+    runs-on: [linux]
     container:
       image: public.ecr.aws/docker/library/golang:1.21-alpine
     steps:
