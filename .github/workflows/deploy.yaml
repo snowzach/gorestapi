@@ -17,13 +17,17 @@ jobs:
   build:
     runs-on: [ubuntu-latest]
     steps:
-      - uses: actions/checkout@v3
-
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v3
 
       - name: Setup Environment
         id: setup-environment
@@ -44,12 +48,12 @@ jobs:
       - name: Build Image
         id: build-image
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          DOCKER_BUILDKIT: 1
         run: |
           echo "Building image: ${{ env.FULL_REPO_NAME }}:${{ env.TAG_SHA_SHORT }}"
           docker build \
             -t "${{ env.FULL_REPO_NAME }}:${{ env.TAG_SHA_SHORT }}" \
-            --build-arg SSH_PRIVATE_KEY="$SSH_PRIVATE_KEY" .
+            --ssh default .
 
           for tag in ${{ env.EXTRA_TAGS }}; do
             echo "Adding extra tag: ${{ env.FULL_REPO_NAME }}:$tag"
@@ -76,4 +80,3 @@ jobs:
             echo "Cleaning extra tag: ${{ env.FULL_REPO_NAME }}:$tag"
             docker image rm "${{ env.FULL_REPO_NAME }}:$tag"
           done
-

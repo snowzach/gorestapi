@@ -40,7 +40,7 @@ test: tools mocks
 
 .PHONY: lint
 lint:
-	docker run --rm -v ${PWD}:/app -w /app golangci/golangci-lint:v1.54.0 golangci-lint run -v --timeout 5m
+	docker run --rm -v ${PWD}:/app -w /app golangci/golangci-lint:latest golangci-lint run -v --timeout 5m
 
 .PHONY: hadolint
 hadolint:

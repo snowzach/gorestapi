@@ -2,8 +2,6 @@ module github.com/snowzach/gorestapi
 
 go 1.21
 
-toolchain go1.21.3
-
 require (
 	github.com/gavv/httpexpect/v2 v2.1.0
 	github.com/go-chi/chi/v5 v5.0.10
@@ -12,7 +10,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/prometheus/client_golang v1.17.0
 	github.com/rs/xid v1.5.0
-	github.com/snowzach/golib v1.0.3
+	github.com/snowzach/golib v1.0.4
 	github.com/snowzach/queryp v0.3.6
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.2
@@ -44,6 +42,7 @@ require (
 	github.com/klauspost/compress v1.15.11 // indirect
 	github.com/knadh/koanf v1.5.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
+	github.com/lmittmann/tint v1.0.2 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
@@ -79,5 +78,5 @@ require (
 	moul.io/http2curl v1.0.1-0.20190925090545-5cd742060b0e // indirect
 )
 
-// replace github.com/snowzach/queryp => ../queryp
-// replace github.com/snowzach/golib => ../golib
+//replace github.com/snowzach/queryp => ../queryp
+//replace github.com/snowzach/golib => ../golib

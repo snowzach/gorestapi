@@ -6,12 +6,10 @@ import "net/http"
 func defaults() map[string]interface{} {
 	return map[string]interface{}{
 		// Logger Defaults
-		"logger.level":              "info",
-		"logger.encoding":           "console",
-		"logger.color":              true,
-		"logger.dev_mode":           true,
-		"logger.disable_caller":     false,
-		"logger.disable_stacktrace": true,
+		"logger.level":    "info",
+		"logger.encoding": "console",
+		"logger.color":    true,
+		"logger.output":   "stderr",
 
 		// Metrics, profiler, pidfile
 		"metrics.enabled":  true,
