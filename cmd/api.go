@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	cli "github.com/spf13/cobra"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/snowzach/golib/conf"
 	"github.com/snowzach/golib/httpserver"
@@ -99,8 +99,6 @@ var (
 			signal.Stop.OnSignal(signal.DefaultStopSignals...)
 			<-signal.Stop.Chan() // Wait until Stop
 			signal.Stop.Wait()   // Wait until everyone cleans up
-			log.Flush()          // Flush the logger
-
 		},
 	}
 )
@@ -120,10 +118,8 @@ func newRouter() (chi.Router, error) {
 			return nil, fmt.Errorf("could not parser server.log config: %w", err)
 		}
 		switch conf.C.String("logger.encoding") {
-		case "stackdriver":
-			router.Use(logger.LoggerStackdriverMiddleware(log.Base.Named("server"), loggerConfig))
 		default:
-			router.Use(logger.LoggerStandardMiddleware(log.Base.Named("server"), loggerConfig))
+			router.Use(logger.LoggerStandardMiddleware(log.Logger.With("context", "server"), loggerConfig))
 		}
 	}
 
@@ -186,9 +182,9 @@ func newDatabase() (*postgres.Client, error) {
 	}
 
 	// Loggers
-	postgresConfig.Logger = log.NewWrapper(log.Logger.Named("database.postgres").Desugar(), zapcore.InfoLevel)
+	postgresConfig.Logger = log.NewWrapper(log.Logger.With("context", "database.postgres"), slog.LevelInfo)
 	if conf.C.Bool("database.log_queries") {
-		postgresConfig.QueryLogger = log.NewWrapper(log.Logger.Named("database.postgres.query").Desugar(), zapcore.DebugLevel)
+		postgresConfig.QueryLogger = log.NewWrapper(log.Logger.With("context", "database.postgres.query"), slog.LevelDebug)
 	}
 
 	// Migrations

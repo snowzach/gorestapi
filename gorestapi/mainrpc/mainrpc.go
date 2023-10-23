@@ -1,14 +1,17 @@
 package mainrpc
 
 import (
+	"log/slog"
+
 	"github.com/go-chi/chi/v5"
+	"github.com/snowzach/golib/log"
+
 	"github.com/snowzach/gorestapi/gorestapi"
-	"go.uber.org/zap"
 )
 
 // Server is the API web server
 type Server struct {
-	logger  *zap.SugaredLogger
+	logger  *slog.Logger
 	router  chi.Router
 	grStore gorestapi.GRStore
 }
@@ -17,7 +20,7 @@ type Server struct {
 func Setup(router chi.Router, grStore gorestapi.GRStore) error {
 
 	s := &Server{
-		logger:  zap.S().With("package", "thingrpc"),
+		logger:  log.Logger.With("context", "mainrpc"),
 		router:  router,
 		grStore: grStore,
 	}

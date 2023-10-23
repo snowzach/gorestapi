@@ -62,14 +62,14 @@ var (
 					r.HandleFunc("/debug/pprof/profile", pprof.Profile)
 					r.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 					r.HandleFunc("/debug/pprof/trace", pprof.Trace)
-					log.Infow("Profiler enabled", "profiler_path", fmt.Sprintf("http://%s/debug/pprof/", hostPort))
+					log.Info("Profiler enabled", "profiler_path", fmt.Sprintf("http://%s/debug/pprof/", hostPort))
 				}
 				go func() {
 					if err := http.ListenAndServe(hostPort, r); err != nil {
 						log.Errorf("Metrics server error: %v", err)
 					}
 				}()
-				log.Infow("Metrics enabled", "address", hostPort)
+				log.Info("Metrics enabled", "address", hostPort)
 			}
 
 			// Create Pid File
